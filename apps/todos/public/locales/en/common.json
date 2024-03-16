@@ -1,0 +1,43 @@
+{
+  "actions": {
+    "title": "Actions",
+    "view": "View",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "agree": "Agree",
+    "disagree": "Disagree",
+    "duplicate": "Duplicate",
+    "confirmDelete": "Are you sure you want to delete this todo item?",
+    "confirmDeleteComment": "Are you sure you want to delete this comment?",
+    "save": "Save",
+    "addTask": "Add Task",
+    "addSubTask": "Add sub-task",
+    "cancel": "Cancel",
+    "reset": "Reset all",
+    "copyText": "Copy Text"
+  },
+  "views": {
+    "list": "List",
+    "board": "Board"
+  },
+  "priority": {
+    "title": "Priority",
+    "levels": {
+      "P1": "high",
+      "P2": "medium",
+      "P3": "low"
+    }
+  },
+  "comment": {
+    "title": "Comment"
+  },
+  "date": {
+    "today": "To day"
+  },
+  "task": {
+    "title": "Task",
+    "noTask": "You have no task for today",
+    "noTaskSort": "No tasks match the current sorting options."
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "groupBy": {
+    "heading": "Grouping",
+    "default": "None (default)",
+    "priority": "Priority"
+  },
+  "sortBy": {
+    "heading": "Sort by",
+    "subHeading": "Sorting",
+    "default": "Smart (default)",
+    "name": "Name",
+    "priority": "Priority"
+  },
+  "filterBy": {
+    "title": "Filter by",
+    "priority": {
+      "heading": "Priority",
+      "default": "All (default)",
+      "p1": "P1",
+      "p2": "P2",
+      "p3": "P3"
+    }
+  }
+}

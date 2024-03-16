@@ -1,0 +1,12 @@
+{
+  "name": "op-web-apps",
+  "packageManager": "yarn@4.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "devDependencies": {
+    "@op/i18n": "workspace:^",
+    "typescript": "^5.3.3"
+  }
+}
