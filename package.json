@@ -8,5 +8,8 @@
   "devDependencies": {
     "@op/i18n": "workspace:^",
     "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "preinstall": "yarn set version stable"
   }
 }
