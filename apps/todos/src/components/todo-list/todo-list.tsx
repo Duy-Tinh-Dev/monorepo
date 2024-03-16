@@ -1,140 +1,86 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, CircularProgress, Stack, Typography } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
-
-import { getIndexTodoById } from '@utils/getIndexTodoById';
-import { checkPriority } from '@utils/checkPriority';
-
-import TodoEditor from './todo-editor/todo-editor';
-import {
-  BaseTodo,
-  Comment,
-  FilterPriority,
-  GroupBy,
-  LevelPriority,
-  SortBy,
-  Todo,
-} from './types';
-import TodoItem from './todo-item/todo-item';
-import backgroundEmpty from '@assets/background.png';
-import useDisclosure from '@hooks/useDisclosure';
-import { TodoDetailModal } from './todo-detail-modal';
-
-import {
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  TouchSensor,
-  closestCorners,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-
+import { DndContext, DragEndEvent, closestCorners } from '@dnd-kit/core';
+import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   SortableContext,
   arrayMove,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { GroupPriority } from '@components/group';
+import AddIcon from '@mui/icons-material/Add';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import { useTranslation } from '@op/i18n';
-import { ViewMenuOption } from '@components/view-menu-option';
-import { handleSortingByPriority } from '@utils/handleSortingByPriority';
 import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  onSnapshot,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from 'firebase/firestore';
-import { db } from '@config/firebase';
-import { useAuth } from '@context/auth-context';
-import { useNavigate } from 'react-router-dom';
+  addTodoApi,
+  deleteTodoApi,
+  duplicateTodoApi,
+  editTodoApi,
+  getAllTodoUser,
+  toggleCompleteTodoApi,
+} from 'src/api';
+import { useAuth } from '@/contexts/auth-context';
+import {
+  counterTodoSelector,
+  filterSelector,
+  listTodoSortingSelector,
+  todoListSelector,
+} from '@/redux/selectors';
+import { initListTodo } from '@/redux/slices/todoSlice';
+import { useSensors, useDisclosure } from '@/hooks';
+import { getIndexTodoById, checkPriority } from '@/utils';
+import { TodoEditor } from './todo-editor';
+import TodoItem from './todo-item/todo-item';
+import { GroupPriority } from '../group';
+import { TodoDetailModal } from './todo-detail-modal';
+import { ViewMenuOption } from '../view-menu-option';
+import { PriorityBy, PriorityLevels, Todo } from './types';
+import backgroundEmpty from '@/assets/background.png';
 
-const initialFilterPriority = 'All (default)';
-const levels: LevelPriority[] = ['high', 'medium', 'low'];
-
-const handleSortingByName = (array: Todo[]): Todo[] => {
-  return array.slice().sort((a, b) => {
-    const nameA = a.name.toUpperCase();
-    const nameB = b.name.toUpperCase();
-    if (nameA >= nameB) {
-      return 1;
-    }
-    return -1;
-  });
-};
-
-const handleUpdateTodo = async (todos: Todo[]) => {
-  for (const todo of todos) {
-    const updateTodo = async () => {
-      await updateDoc(doc(db, 'todos', String(todo.id)), {
-        ...todo,
-      });
-    };
-    updateTodo();
-  }
-};
+const levels: PriorityLevels[] = [
+  PriorityLevels.P1,
+  PriorityLevels.P2,
+  PriorityLevels.P3,
+];
 
 const TodoList = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { t } = useTranslation(['common', 'option']);
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const [listTodo, setListTodo] = useState<Todo[]>([]);
+  const { sensors } = useSensors();
+
+  const listTodo = useSelector(todoListSelector);
+  const { groupBy, priority } = useSelector(filterSelector);
+  const totalTodoComplete = useSelector(counterTodoSelector);
+  const listTodoSorting = useSelector(listTodoSortingSelector);
+
   const [loading, setLoading] = useState(true);
-  const todoDetailModalDisclosure = useDisclosure({});
   const [isCommentModal, setIsCommentModal] = useState(false);
-  const [groupBy, setGroupBy] = useState<GroupBy>('None (default)');
-  const [sortBy, setSortBy] = useState<SortBy>('Smart (default)');
-  const [filterPriority, setFilterPriority] = useState<FilterPriority>(
-    initialFilterPriority
-  );
 
   const [todoDetail, setTodoDetail] = useState<Todo>();
   const [indexTodoDetail, setIndexTodoDetail] = useState(0);
   const [isAddTodo, setIsAddTodo] = useState(false);
-
   const [idEditTodo, setIdEditTodo] = useState(-1);
   const [isOpenEditTodo, setIsOpenEditTodo] = useState(false);
-  const [listTodoSorting, setListTodoSorting] = useState<Todo[]>(
-    handleSortingByPriority(listTodo)
-  );
 
-  const levelFilterPriority: LevelPriority | undefined =
-    filterPriority !== initialFilterPriority
-      ? (t(`priority.levels.${filterPriority}`) as LevelPriority)
-      : undefined;
+  const todoDetailModalDisclosure = useDisclosure({});
 
-  const totalTodoComplete = useMemo(() => {
-    return listTodo.filter((todo) => !todo.isComplete).length;
-  }, [listTodo]);
+  const levelPriority: PriorityLevels | undefined =
+    priority !== PriorityBy.DEFAULT ? PriorityLevels[priority] : undefined;
+
+  const setListTodo = (todos: Todo[]) => {
+    dispatch(initListTodo(todos));
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (filterPriority !== initialFilterPriority) {
-      const newListTodoSorting = listTodo.filter((todo) => {
-        return todo.priority.level === t(`priority.levels.${filterPriority}`);
-      });
-
-      if (sortBy === 'Name') {
-        setListTodoSorting(handleSortingByName(newListTodoSorting));
-        return;
-      }
-      setListTodoSorting(handleSortingByPriority(newListTodoSorting));
-      return;
+    if (currentUser) {
+      getAllTodoUser(currentUser.uid, setListTodo);
+    } else {
+      navigate('/auth/login');
     }
-
-    if (sortBy === 'Name') {
-      setListTodoSorting(handleSortingByName(listTodo));
-      return;
-    }
-
-    setListTodoSorting(handleSortingByPriority(listTodo));
-  }, [listTodo, groupBy, sortBy, filterPriority]);
+  }, [currentUser]);
 
   const handleToggleModalDetail = (
     todo: Todo,
@@ -170,18 +116,6 @@ const TodoList = () => {
     setIndexTodoDetail(preIndex);
   };
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    }),
-    useSensor(TouchSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
   const handleToggleAddTodo = () => {
     setIsAddTodo(!isAddTodo);
     setIdEditTodo(-1);
@@ -193,306 +127,16 @@ const TodoList = () => {
     setIdEditTodo(idTodo);
   };
 
-  const handleToggleCompleteTodo = (idTodo: number) => {
-    const toggleCompleteTodo = async () => {
-      const docSnap = await getDoc(doc(db, 'todos', String(idTodo)));
-      if (docSnap.exists()) {
-        const todo: Todo = {
-          ...(docSnap.data() as Todo),
-          id: idTodo,
-        };
-        await updateDoc(doc(db, 'todos', String(idTodo)), {
-          isComplete: !todo.isComplete,
-        });
-      }
-    };
+  const handleDragTodo = ({ active, over }: DragEndEvent) => {
+    if (over === null || active.id === over?.id) return;
 
-    toggleCompleteTodo();
-  };
-
-  const handleEditTodo = (todo: BaseTodo, idEdit?: number) => {
-    const id = idEdit ?? idEditTodo;
-    const editTodo = async () => {
-      await updateDoc(doc(db, 'todos', String(id)), {
-        ...todo,
-      });
-    };
-    editTodo();
-  };
-
-  const handleDeleteTodo = (idTodo: number) => {
-    const deleteTodo = async () => {
-      await deleteDoc(doc(db, 'todos', String(idTodo)));
-    };
-    deleteTodo();
-  };
-
-  const handleDuplicate = (todo: Todo) => {
-    const idNewTodo = new Date().getTime();
-    const { id, ...rest } = todo;
-    const duplicateTodo = async () => {
-      await setDoc(doc(db, 'todos', String(idNewTodo)), {
-        ...rest,
-      });
-    };
-    duplicateTodo();
-  };
-
-  const handleToggleCompleteSubTodo = (idTodo: number, idSubTodo: number) => {
-    const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
-      if (todoItem.id === idTodo) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map((subTask) => {
-            if (subTask.id === idSubTodo) {
-              return {
-                ...subTask,
-                isComplete: !subTask.isComplete,
-              };
-            }
-            return subTask;
-          }),
-        };
-      }
-      if (Array.isArray(todoItem.subTasks)) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map(iter),
-        };
-      }
-      return todoItem;
-    });
-
-    handleUpdateTodo(updatedListTodo);
-  };
-
-  const handleAddSubTodo = (idTodo: number, subTodo: Todo) => {
-    const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
-      if (todoItem.id === idTodo) {
-        return {
-          ...todoItem,
-          subTasks: [...todoItem.subTasks, subTodo],
-        };
-      }
-      if (Array.isArray(todoItem.subTasks)) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map(iter),
-        };
-      }
-      return todoItem;
-    });
-    handleUpdateTodo(updatedListTodo);
-  };
-
-  const handleEditSubTodo = (id: number, idSubTodo: number, todo: BaseTodo) => {
-    const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
-      if (todoItem.id === id) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map((subTask) => {
-            if (subTask.id === idSubTodo) {
-              return {
-                ...subTask,
-                name: todo.name,
-                description: todo.description,
-                priority: todo.priority,
-              };
-            }
-            return subTask;
-          }),
-        };
-      }
-      if (Array.isArray(todoItem.subTasks)) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map(iter),
-        };
-      }
-      return todoItem;
-    });
-    handleUpdateTodo(updatedListTodo);
-  };
-
-  const handleDeleteSubTodo = (idTodo: number, idSubTodo: number) => {
-    const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
-      if (todoItem.id === idTodo) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.filter(
-            (subTask) => subTask.id !== idSubTodo
-          ),
-        };
-      }
-      if (Array.isArray(todoItem.subTasks)) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map(iter),
-        };
-      }
-      return todoItem;
-    });
-    handleUpdateTodo(updatedListTodo);
-  };
-
-  const handleDuplicateSubTodo = (idTodo: number, subTodo: Todo) => {
-    const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
-      if (todoItem.id === idTodo) {
-        return {
-          ...todoItem,
-          subTasks: [...todoItem.subTasks, subTodo],
-        };
-      }
-      if (Array.isArray(todoItem.subTasks)) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map(iter),
-        };
-      }
-      return todoItem;
-    });
-    handleUpdateTodo(updatedListTodo);
-  };
-
-  const handleEditTodoDetail = (idTodo: number, todo: BaseTodo) => {
-    const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
-      if (todoItem.id === idTodo) {
-        return {
-          ...todoItem,
-          ...todo,
-        };
-      }
-      if (Array.isArray(todoItem.subTasks)) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map(iter),
-        };
-      }
-      return todoItem;
-    });
-    handleUpdateTodo(updatedListTodo);
-  };
-
-  const handleAddComment = (idTodo: number, comment: Comment) => {
-    const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
-      if (todoItem.id === idTodo) {
-        return {
-          ...todoItem,
-          comments: [...todoItem.comments, comment],
-        };
-      }
-      if (Array.isArray(todoItem.subTasks)) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map(iter),
-        };
-      }
-      return todoItem;
-    });
-
-    setListTodo(updatedListTodo);
-  };
-
-  const handleEditComment = (idTodo: number, newComment: Comment) => {
-    const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
-      if (todoItem.id === idTodo) {
-        return {
-          ...todoItem,
-          comments: todoItem.comments.map((comment) => {
-            if (comment.id === newComment.id) {
-              return newComment;
-            }
-            return comment;
-          }),
-        };
-      }
-      if (Array.isArray(todoItem.subTasks)) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map(iter),
-        };
-      }
-      return todoItem;
-    });
-    handleUpdateTodo(updatedListTodo);
-  };
-
-  const handleDeleteComment = (idTodo: number, idComment: number) => {
-    const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
-      if (todoItem.id === idTodo) {
-        return {
-          ...todoItem,
-          comments: todoItem.comments.filter(
-            (comment) => comment.id !== idComment
-          ),
-        };
-      }
-      if (Array.isArray(todoItem.subTasks)) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map(iter),
-        };
-      }
-      return todoItem;
-    });
-    handleUpdateTodo(updatedListTodo);
-  };
-
-  const handleUpdateSubTodos = (idTodo: number, subTasks: Todo[]) => {
-    const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
-      if (todoItem.id === idTodo) {
-        return {
-          ...todoItem,
-          subTasks,
-        };
-      }
-      if (Array.isArray(todoItem.subTasks)) {
-        return {
-          ...todoItem,
-          subTasks: todoItem.subTasks.map(iter),
-        };
-      }
-      return todoItem;
-    });
-    handleUpdateTodo(updatedListTodo);
-  };
-
-  const handleSetGroup = (type: GroupBy) => {
-    setGroupBy(type);
-  };
-
-  const handleSetSort = (type: SortBy) => {
-    setSortBy(type);
-  };
-
-  const handleSetFilterPriority = (type: FilterPriority) => {
-    setFilterPriority(type);
-  };
-
-  useEffect(() => {
-    const getListTodo = async () => {
-      const q = query(
-        collection(db, 'todos'),
-        where('userId', '==', currentUser?.uid)
-      );
-      onSnapshot(q, (querySnapshot) => {
-        const todos: Todo[] = [];
-        querySnapshot.forEach((doc) => {
-          todos.push({
-            ...(doc.data() as Todo),
-            id: Number(doc.id),
-          });
-        });
-        setListTodo(todos);
-        setLoading(false);
-      });
-    };
-    if (currentUser) {
-      getListTodo();
-    } else {
-      navigate('/auth/login');
+    const originalPos = getIndexTodoById(listTodo, active.id);
+    const newPos = getIndexTodoById(listTodo, over?.id);
+    if (checkPriority(listTodo, originalPos, newPos)) {
+      const newListTodo = arrayMove(listTodo, originalPos, newPos);
+      dispatch(initListTodo(newListTodo));
     }
-  }, [currentUser]);
+  };
 
   return (
     <Stack
@@ -505,7 +149,6 @@ const TodoList = () => {
       <Typography variant='h4' component='h1' fontWeight='bold'>
         {t('date.today')}
       </Typography>
-
       {!loading && listTodo.length > 0 && (
         <Stack
           direction='row'
@@ -520,21 +163,10 @@ const TodoList = () => {
           </Typography>
         </Stack>
       )}
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
-        onDragEnd={({ active, over }) => {
-          if (over !== null && active.id !== over?.id) {
-            const originalPos = getIndexTodoById(listTodo, active.id);
-            const newPos = getIndexTodoById(listTodo, over?.id);
-            if (checkPriority(listTodo, originalPos, newPos)) {
-              setListTodo((listTodo) => {
-                return arrayMove(listTodo, originalPos, newPos);
-              });
-            }
-          }
-        }}
+        onDragEnd={handleDragTodo}
       >
         <SortableContext
           items={listTodoSorting}
@@ -546,10 +178,6 @@ const TodoList = () => {
                 key={index}
                 listTodoSorting={listTodoSorting}
                 level={level}
-                onToggleCompleteTodo={handleToggleCompleteTodo}
-                onDeleteTodo={handleDeleteTodo}
-                onEditTodo={handleEditTodo}
-                onDuplicate={handleDuplicate}
                 onSeeDetailTodo={handleToggleModalDetail}
               />
             ))
@@ -563,11 +191,11 @@ const TodoList = () => {
                     todo={todo}
                     idEditTodo={idEditTodo}
                     isOpenEditTodo={isOpenEditTodo}
-                    onToggleCompleteTodo={handleToggleCompleteTodo}
-                    onDeleteTodo={handleDeleteTodo}
+                    onToggleCompleteTodo={toggleCompleteTodoApi}
+                    onDeleteTodo={deleteTodoApi}
                     onToggleEditTodo={handleToggleEditTodo}
-                    onEditTodo={handleEditTodo}
-                    onDuplicate={handleDuplicate}
+                    onEditTodo={editTodoApi}
+                    onDuplicate={duplicateTodoApi}
                     onSeeDetailTodo={handleToggleModalDetail}
                   />
                 ))}
@@ -606,19 +234,18 @@ const TodoList = () => {
                   {t('actions.addTask')}
                 </Button>
               )}
-
               {isAddTodo && idEditTodo === -1 && (
                 <TodoEditor
+                  onAddTodo={addTodoApi}
                   onCancelAdd={handleToggleAddTodo}
-                  level={levelFilterPriority}
-                  disabledPopup={filterPriority !== initialFilterPriority}
+                  level={levelPriority}
+                  disabledPopup={priority !== PriorityBy.DEFAULT}
                 />
               )}
             </>
           )}
         </SortableContext>
       </DndContext>
-
       {currentUser &&
         !loading &&
         !isAddTodo &&
@@ -639,33 +266,16 @@ const TodoList = () => {
           onClose={todoDetailModalDisclosure.onClose}
           todo={todoDetail}
           onToggleCommentDetail={handleToggleCommentDetail}
-          onAddComment={handleAddComment}
-          onEditComment={handleEditComment}
-          onDeleteComment={handleDeleteComment}
-          onAddSubTodo={handleAddSubTodo}
-          onEditSubTodo={handleEditSubTodo}
-          onEditTodoDetail={handleEditTodoDetail}
-          onDeleteSubTodo={handleDeleteSubTodo}
-          onDuplicateSubTodo={handleDuplicateSubTodo}
-          onUpdateSubTodos={handleUpdateSubTodos}
-          onToggleCompleteSubTodo={handleToggleCompleteSubTodo}
           onNextTodoDetail={handleNextDetailTodo}
           onPreviousTodoDetail={handlePreviousDetailTodo}
         />
       )}
-
       <ViewMenuOption
         sx={{
           position: 'absolute',
           right: '70px',
           top: '0',
         }}
-        groupBy={groupBy}
-        sortBy={sortBy}
-        filterPriority={filterPriority}
-        onSetGroup={handleSetGroup}
-        onSetSort={handleSetSort}
-        onSetFilterSort={handleSetFilterPriority}
       />
     </Stack>
   );

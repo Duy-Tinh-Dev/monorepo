@@ -12,12 +12,19 @@ import {
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
-import usePopover from '@hooks/usePopover';
-import { FilterPriority, GroupBy, SortBy } from '@components/todo-list/types';
+import { usePopover } from '@/hooks';
+import { PriorityBy, GroupBy, SortBy } from '@/components/todo-list/types';
+import { useDispatch, useSelector } from 'react-redux';
+import { filterSelector } from '@/redux/selectors';
+import {
+  setPriorityBy,
+  setGroupBy,
+  setSortBy,
+} from '@/redux/slices/filterSlice';
 
 export interface SubMenu {
   id: number;
-  option: GroupBy | SortBy | FilterPriority;
+  option: GroupBy | SortBy | PriorityBy;
 }
 
 interface SubMenuOptionProps {
@@ -27,12 +34,6 @@ interface SubMenuOptionProps {
   type: 'group' | 'sort' | 'priority';
   selected: string;
   subMenu: SubMenu[];
-  groupBy?: GroupBy;
-  sortBy?: SortBy;
-  filterPriority?: FilterPriority;
-  onSetGroup?: (type: GroupBy) => void;
-  onSetSort?: (type: SortBy) => void;
-  onSetFilterSort?: (type: FilterPriority) => void;
   onChangeMenu: (idMenu: number, idSubMenu: number) => void;
 }
 
@@ -43,15 +44,11 @@ const SubMenuOption: React.FC<SubMenuOptionProps> = ({
   type,
   selected,
   subMenu,
-  groupBy,
-  sortBy,
-  filterPriority,
-  onSetSort,
-  onSetFilterSort,
   onChangeMenu,
-  onSetGroup,
 }) => {
   const { id, open, anchorEl, handleClick, handleClose } = usePopover(idName);
+  const { groupBy, sortBy, priority } = useSelector(filterSelector);
+  const dispatch = useDispatch();
 
   const selectedOption = (() => {
     switch (type) {
@@ -60,7 +57,7 @@ const SubMenuOption: React.FC<SubMenuOptionProps> = ({
       case 'sort':
         return sortBy;
       case 'priority':
-        return filterPriority;
+        return priority;
       default:
         return selected;
     }
@@ -68,14 +65,14 @@ const SubMenuOption: React.FC<SubMenuOptionProps> = ({
 
   const handleSortTodo = (item: SubMenu, index: number) => {
     onChangeMenu(Number(idName), index);
-    if (onSetGroup && type === 'group') {
-      onSetGroup(item.option as GroupBy);
+    if (type === 'group') {
+      dispatch(setGroupBy(item.option as GroupBy));
     }
-    if (onSetSort && type === 'sort') {
-      onSetSort(item.option as SortBy);
+    if (type === 'sort') {
+      dispatch(setSortBy(item.option as SortBy));
     }
-    if (onSetFilterSort && type === 'priority') {
-      onSetFilterSort(item.option as FilterPriority);
+    if (type === 'priority') {
+      dispatch(setPriorityBy(item.option as PriorityBy));
     }
     handleClose();
   };

@@ -1,4 +1,3 @@
-import { AuthLayout } from '@layouts/auth-layout';
 import {
   Button,
   Divider,
@@ -9,26 +8,27 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { SignInMethod } from '@components/sign-in-method';
-import { useTranslation } from '@op/i18n';
 import { useNavigate } from 'react-router-dom';
-import UserImage from '@assets/user.jpg';
-import BusinessImage from '@assets/business.jpg';
-import ProUserImage from '@assets/pro-user.jpg';
-import TaskImage from '@assets/task.jpg';
-import { Info } from '@components/info';
+import UserImage from '@/assets/user.jpg';
+import BusinessImage from '@/assets/business.jpg';
+import ProUserImage from '@/assets/pro-user.jpg';
+import TaskImage from '@/assets/task.jpg';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '@config/firebase';
-import { useAuth } from '@context/auth-context';
-import { FormData } from '@components/todo-list/types';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CircularProgress from '@mui/material/CircularProgress';
-import useValidationSchema from '@hooks/useValidationSchema';
-import UserAvatar from '@assets/user-avatar.png';
+import UserAvatar from '@/assets/user-avatar.png';
 import { useState } from 'react';
+import { useTranslation } from '@op/i18n';
+import { AuthLayout } from '@/layouts/auth-layout';
+import { Info } from '@/components/info';
+import { SignInMethod } from '@/components/sign-in-method';
+import { useAuth } from '@/contexts/auth-context';
+import { useValidationSchema } from '@/hooks';
+import { auth } from '@/config/firebase';
+import { FormData } from '@/components/todo-list/types';
 
 const SignUp = () => {
   const { t } = useTranslation(['auth']);

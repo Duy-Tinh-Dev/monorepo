@@ -1,4 +1,4 @@
-import { BaseTodo, Todo } from '@components/todo-list/types';
+import { BaseTodo, Todo } from '@/components/todo-list/types';
 
 export interface Group {
   listTodoSorting: Todo[];

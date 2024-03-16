@@ -2,7 +2,7 @@ import { Avatar, Stack, Typography } from '@mui/material';
 import CommentAction from '../todo-comment/comment-action';
 import { Comment } from '../types';
 import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
-import avatar from '@assets/background.png';
+import avatar from '@/assets/background.png';
 import CommentEditor from '../todo-comment/comment-editor';
 
 interface CommentItemProps {

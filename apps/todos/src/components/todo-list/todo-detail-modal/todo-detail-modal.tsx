@@ -4,55 +4,50 @@ import { grey } from '@mui/material/colors';
 import TodoContent from './todo-content';
 import Header from './header';
 import TodoStatus from './todo-status';
-import { BaseTodo, Comment, Todo } from '../types';
+import { Comment, Todo } from '../types';
 import { TodoComment } from '../todo-comment';
 import NavigationTodo from './navigation-todo';
 import { SubTasks } from '../sub-task';
 import Sidebar from './sidebar';
+import {
+  toggleCompleteSubTodo,
+  addSubTodo,
+  deleteSubTodo,
+  duplicateSubTodo,
+  editTodoDetail,
+  editSubTodo,
+  addComment,
+  editComment,
+  deleteComment,
+  updateSubTodos,
+} from './utils';
+import { useSelector } from 'react-redux';
+import { todoListSelector } from '@/redux/selectors';
 
 interface TodoDetailProps {
   isComment?: boolean;
   isOpen: boolean;
-  todo: Todo;
   isDisabledNextTodo: boolean;
   isDisabledPreviousTodo: boolean;
+  todo: Todo;
   onClose: () => void;
   onToggleCommentDetail: (isComment: boolean) => void;
-  onEditTodoDetail: (idTodo: number, todo: BaseTodo) => void;
-  onAddSubTodo: (idTodo: number, subTodo: Todo) => void;
-  onEditSubTodo: (id: number, idSubTodo: number, todo: BaseTodo) => void;
-  onDeleteSubTodo: (idTodo: number, idSubTodo: number) => void;
-  onDuplicateSubTodo: (idTodo: number, subTodo: Todo) => void;
-  onAddComment: (idTodo: number, comment: Comment) => void;
-  onEditComment: (idTodo: number, newComment: Comment) => void;
-  onDeleteComment: (idTodo: number, idComment: number) => void;
-  onUpdateSubTodos: (idTodo: number, subTasks: Todo[]) => void;
-  onToggleCompleteSubTodo: (idTodo: number, idSubTodo: number) => void;
   onNextTodoDetail: () => void;
   onPreviousTodoDetail: () => void;
 }
 
 const TodoDetailModal: React.FC<TodoDetailProps> = ({
   isComment,
-  todo,
   isOpen,
   isDisabledNextTodo,
   isDisabledPreviousTodo,
+  todo,
   onClose,
   onToggleCommentDetail,
-  onAddSubTodo,
-  onEditSubTodo,
-  onAddComment,
-  onEditTodoDetail,
-  onDeleteSubTodo,
-  onDuplicateSubTodo,
-  onEditComment,
-  onDeleteComment,
-  onUpdateSubTodos,
-  onToggleCompleteSubTodo,
   onNextTodoDetail,
   onPreviousTodoDetail,
 }) => {
+  const listTodo = useSelector(todoListSelector);
   const [currentTodo, setCurrentTodo] = useState<Todo[]>([todo]);
 
   useEffect(() => {
@@ -65,6 +60,25 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
     } else {
       onNextTodoDetail();
     }
+  };
+
+  const handleBackDetailTodo = () => {
+    const lastTodo = currentTodo.slice(-1)[0];
+    const prevCurrentTodo = currentTodo.slice(0, -1);
+    const updateCurrentTodo = [
+      ...prevCurrentTodo.slice(0, -1),
+      {
+        ...prevCurrentTodo.slice(-1)[0],
+        subTasks: prevCurrentTodo.slice(-1)[0].subTasks.map((subTask) => {
+          if (subTask.id === lastTodo.id) {
+            return lastTodo;
+          }
+          return subTask;
+        }),
+      },
+    ];
+
+    setCurrentTodo(updateCurrentTodo);
   };
 
   const handleSeeDetailTodo = (
@@ -81,103 +95,163 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
     }
   };
 
-  const handleBackDetailTodo = () => {
-    setCurrentTodo((prev) => prev.slice(0, -1));
-  };
-
-  const handleToggleCompleteSubTodo = (idSubTodo: number) => {
-    onToggleCompleteSubTodo(currentTodo.slice(-1)[0].id, idSubTodo);
-
-    currentTodo.slice(-1)[0].subTasks.map((subTask) => {
-      if (subTask.id === idSubTodo) {
-        subTask.isComplete = !subTask.isComplete;
+  const handleToggleCompleteSubTodo = (todo: Todo) => {
+    const updatedSubTasks = currentTodo.slice(-1)[0].subTasks.map((subTask) => {
+      if (subTask.id === todo.id) {
+        return {
+          ...subTask,
+          isComplete: !subTask.isComplete,
+        };
       }
       return subTask;
     });
+
+    setCurrentTodo((prev) => {
+      return [
+        ...prev.slice(0, -1),
+        {
+          ...prev.slice(-1)[0],
+          subTasks: updatedSubTasks,
+        },
+      ];
+    });
+
+    toggleCompleteSubTodo(currentTodo.slice(-1)[0].id, todo.id, listTodo);
   };
 
   const handleAddSubTodo = (newTodo: Todo) => {
-    onAddSubTodo(currentTodo.slice(-1)[0].id, newTodo);
-
-    currentTodo.slice(-1)[0].subTasks.push(newTodo);
-  };
-
-  const handleEditSubTodo = (idSubTodo: number, todo: BaseTodo) => {
-    onEditSubTodo(currentTodo.slice(-1)[0].id, idSubTodo, {
-      name: todo.name,
-      description: todo.description,
-      priority: todo.priority,
+    setCurrentTodo((prev) => {
+      return [
+        ...prev.slice(0, -1),
+        {
+          ...prev.slice(-1)[0],
+          subTasks: [...prev.slice(-1)[0].subTasks, newTodo],
+        },
+      ];
     });
 
-    currentTodo.slice(-1)[0].subTasks.map((subTask) => {
-      if (subTask.id === idSubTodo) {
-        subTask.name = todo.name;
-        subTask.description = todo.description;
-        subTask.priority = todo.priority;
+    addSubTodo(currentTodo.slice(-1)[0].id, newTodo, listTodo);
+  };
+
+  const handleEditSubTodo = (todo: Todo) => {
+    editSubTodo(currentTodo.slice(-1)[0].id, todo.id, todo, listTodo);
+
+    const updatedSubTasks = currentTodo.slice(-1)[0].subTasks.map((subTask) => {
+      if (subTask.id === todo.id) {
+        return {
+          ...subTask,
+          ...todo,
+        };
       }
       return subTask;
+    });
+
+    setCurrentTodo((prev) => {
+      return [
+        ...prev.slice(0, -1),
+        {
+          ...prev.slice(-1)[0],
+          subTasks: updatedSubTasks,
+        },
+      ];
     });
   };
 
   const handleDeleteSubTodo = (idSubTodo: number) => {
-    currentTodo.slice(-1)[0].subTasks = currentTodo
-      .slice(-1)[0]
-      .subTasks.filter((subTask) => subTask.id !== idSubTodo);
-
-    onDeleteSubTodo(currentTodo.slice(-1)[0].id, idSubTodo);
+    setCurrentTodo((prev) => {
+      return [
+        ...prev.slice(0, -1),
+        {
+          ...prev.slice(-1)[0],
+          subTasks: currentTodo
+            .slice(-1)[0]
+            .subTasks.filter((subTask) => subTask.id !== idSubTodo),
+        },
+      ];
+    });
+    deleteSubTodo(currentTodo.slice(-1)[0].id, idSubTodo, listTodo);
   };
 
-  const handleDuplicateSubTodo = (subTodo: Todo) => {
-    const newTodo = {
-      ...subTodo,
-      id: new Date().getTime(),
-    };
-    currentTodo.slice(-1)[0].subTasks.push(newTodo);
+  const handleDuplicateSubTodo = (todo: Todo) => {
+    setCurrentTodo((prev) => {
+      return [
+        ...prev.slice(0, -1),
+        {
+          ...prev.slice(-1)[0],
+          subTasks: [...prev.slice(-1)[0].subTasks, todo],
+        },
+      ];
+    });
 
-    onDuplicateSubTodo(currentTodo.slice(-1)[0].id, newTodo);
+    duplicateSubTodo(currentTodo.slice(-1)[0].id, todo, listTodo);
   };
 
   const handleEditTodoDetail = (todo: Todo) => {
-    const lastTodo = currentTodo[currentTodo.length - 1];
-    const updatedTodo = {
-      ...lastTodo,
-      ...todo,
-    };
-
-    onEditTodoDetail(lastTodo.id, updatedTodo);
-
-    const newListCurrentTodo = currentTodo.slice(0, -1).concat(updatedTodo);
-    setCurrentTodo(newListCurrentTodo);
+    setCurrentTodo((pre) => {
+      return [
+        ...pre.slice(0, -1),
+        {
+          ...pre.slice(-1)[0],
+          ...todo,
+        },
+      ];
+    });
+    editTodoDetail(todo.id, todo, listTodo);
   };
 
   const handleAddComment = (comment: Comment) => {
-    onAddComment(currentTodo.slice(-1)[0].id, comment);
-
-    currentTodo.slice(-1)[0].comments.push(comment);
+    setCurrentTodo((prev) => {
+      return [
+        ...prev.slice(0, -1),
+        {
+          ...prev.slice(-1)[0],
+          comments: [...prev.slice(-1)[0].comments, comment],
+        },
+      ];
+    });
+    addComment(currentTodo.slice(-1)[0].id, comment, listTodo);
   };
 
-  const handleEditComment = (newComment: Comment) => {
-    onEditComment(currentTodo.slice(-1)[0].id, newComment);
-
-    currentTodo.slice(-1)[0].comments.map((comment) => {
-      if (comment.id === newComment.id) {
-        comment.name = newComment.name;
-        comment.content = newComment.content;
+  const handleEditComment = (comment: Comment) => {
+    const newComments = currentTodo.slice(-1)[0].comments.map((itemComment) => {
+      if (itemComment.id === comment.id) {
+        return {
+          ...itemComment,
+          ...comment,
+        };
       }
-      return comment;
+      return itemComment;
     });
+
+    setCurrentTodo((prev) => {
+      return [
+        ...prev.slice(0, -1),
+        {
+          ...prev.slice(-1)[0],
+          comments: newComments,
+        },
+      ];
+    });
+    editComment(currentTodo.slice(-1)[0].id, comment, listTodo);
   };
 
   const handleDeleteComment = (idComment: number) => {
-    onDeleteComment(currentTodo.slice(-1)[0].id, idComment);
-
-    currentTodo.slice(-1)[0].comments = currentTodo
-      .slice(-1)[0]
-      .comments.filter((comment) => comment.id !== idComment);
+    setCurrentTodo((prev) => {
+      return [
+        ...prev.slice(0, -1),
+        {
+          ...prev.slice(-1)[0],
+          comments: currentTodo
+            .slice(-1)[0]
+            .comments.filter((comment) => comment.id !== idComment),
+        },
+      ];
+    });
+    deleteComment(currentTodo.slice(-1)[0].id, idComment, listTodo);
   };
 
   const handleUpdateSubTodos = (subTasks: Todo[]) => {
-    onUpdateSubTodos(currentTodo.slice(-1)[0].id, subTasks);
+    updateSubTodos(currentTodo.slice(-1)[0].id, subTasks, listTodo);
   };
 
   return (

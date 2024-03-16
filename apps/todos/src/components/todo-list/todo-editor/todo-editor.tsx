@@ -8,31 +8,33 @@ import {
   SxProps,
 } from '@mui/material';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import { grey } from '@mui/material/colors';
+import { green, grey } from '@mui/material/colors';
 import FlagIcon from '@mui/icons-material/Flag';
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
-import { BaseTodo, LevelPriority, PriorityItem, Todo } from '../types';
+import { PriorityItem, PriorityLevels, Todo } from '../types';
 import { PriorityList } from '../priority-list';
-import { listPriority } from '@constants/constants';
-import usePopover from '@hooks/usePopover';
 import { useTranslation } from '@op/i18n';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@config/firebase';
-import { useAuth } from '@context/auth-context';
+import EditCalendarOutlinedIcon from '@mui/icons-material/EditCalendarOutlined';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import TodoDate from './todo-date';
+import { listPriority } from '@/constants';
+import { useAuth } from '@/contexts/auth-context';
+import { usePopover } from '@/hooks';
+import { getNameDate } from '@/utils';
 
 interface TodoEditorProps {
   todo?: Todo;
-  level?: LevelPriority;
+  level?: PriorityLevels;
   disabledPopup?: boolean;
   type?: 'add' | 'edit';
   onCancelAdd?: () => void;
   onCancelEdit?: (id: number) => void;
   onAddTodo?: (newTodo: Todo) => void;
-  onEditTodo?: (todo: BaseTodo, id?: number) => void;
+  onEditTodo?: (todo: Todo) => void;
   sx?: SxProps;
 }
 
-const getPriorityItemByLevel = (level: LevelPriority | null): PriorityItem => {
+const getPriorityItemByLevel = (level: PriorityLevels | null): PriorityItem => {
   const index = listPriority.findIndex((item) => item.level === level);
   return listPriority[index];
 };
@@ -50,8 +52,8 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
 }) => {
   const { t } = useTranslation(['common']);
   const { currentUser } = useAuth();
-  const { id, open, anchorEl, handleClick, handleClose } =
-    usePopover('priority');
+  const priorityPopover = usePopover('priority');
+  const todoDatePopover = usePopover('todo-date');
 
   const initialPriorityTodo =
     getPriorityItemByLevel(level) ??
@@ -62,9 +64,9 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
   const [descriptionTodo, setDescriptionTodo] = useState(
     todo?.description ?? ''
   );
-
   const [priorityTodo, setPriorityTodo] =
     useState<PriorityItem>(initialPriorityTodo);
+  const [expireTime, setExpireTime] = useState(todo?.expireTime);
 
   useEffect(() => {
     if (nameRef.current) {
@@ -83,32 +85,19 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
   };
 
   const handleAddTodo = () => {
-    const nameTodoTrim = nameTodo.trim();
-    if (nameTodoTrim !== '') {
-      const newTodo = {
-        id: new Date().getTime(),
-        name: nameTodoTrim,
-        description: descriptionTodo.trim(),
-        isComplete: false,
-        priority: priorityTodo,
-        comments: [],
-        subTasks: [],
-        userId: currentUser?.uid,
-      };
+    const newTodo = {
+      id: new Date().getTime(),
+      name: nameTodo.trim(),
+      description: descriptionTodo.trim(),
+      isComplete: false,
+      priority: priorityTodo,
+      comments: [],
+      subTasks: [],
+      userId: currentUser?.uid,
+      expireTime: expireTime ?? '',
+    };
 
-      if (onAddTodo) {
-        onAddTodo(newTodo);
-      } else {
-        const setListTodo = async () => {
-          const { id, ...rest } = newTodo;
-          const docRef = doc(db, 'todos', String(id));
-          await setDoc(docRef, {
-            ...rest,
-          });
-        };
-        setListTodo();
-      }
-    }
+    onAddTodo && onAddTodo(newTodo);
 
     setNameTodo('');
     setDescriptionTodo('');
@@ -119,21 +108,17 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
   };
 
   const handleEditTodo = () => {
-    const contentTrim = nameTodo.trim();
-    if (todo && contentTrim !== '') {
-      onEditTodo &&
-        onEditTodo(
-          {
-            name: nameTodo,
-            description: descriptionTodo,
-            priority: priorityTodo,
-          },
-          todo.id
-        );
+    if (todo && onEditTodo) {
+      onEditTodo({
+        ...todo,
+        name: nameTodo.trim(),
+        description: descriptionTodo.trim(),
+        priority: priorityTodo,
+        expireTime: expireTime,
+      });
       setNameTodo('');
       setDescriptionTodo('');
       onCancelEdit && onCancelEdit(-1);
-      return;
     }
   };
 
@@ -190,7 +175,56 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
         </Box>
         <Stack direction='row' alignItems='center' gap='10px' mb={1.5}>
           <Button
-            aria-describedby={id}
+            aria-describedby={todoDatePopover.id}
+            size='small'
+            variant='outlined'
+            startIcon={<EditCalendarOutlinedIcon />}
+            endIcon={
+              expireTime && (
+                <CloseOutlinedIcon
+                  sx={{
+                    color: grey[400],
+                  }}
+                />
+              )
+            }
+            sx={{
+              fontWeight: 'normal',
+              borderColor: grey[300],
+              color: expireTime ? green[500] : grey[500],
+              '& .MuiButton-startIcon': {
+                marginRight: 0.5,
+              },
+              '&:hover': {
+                borderColor: grey[300],
+              },
+            }}
+            onClick={todoDatePopover.handleClick}
+          >
+            {expireTime ? getNameDate(expireTime) : 'Due date'}
+          </Button>
+          <Popover
+            id={priorityPopover.id}
+            open={todoDatePopover.open}
+            anchorEl={todoDatePopover.anchorEl}
+            onClose={todoDatePopover.handleClose}
+            anchorOrigin={{
+              vertical: 'center',
+              horizontal: 'left',
+            }}
+            transformOrigin={{
+              vertical: 'center',
+              horizontal: 'right',
+            }}
+          >
+            <TodoDate
+              expireTime={expireTime}
+              setExpireTime={setExpireTime}
+              onClose={todoDatePopover.handleClose}
+            />
+          </Popover>
+          <Button
+            aria-describedby={priorityPopover.id}
             size='small'
             variant='outlined'
             startIcon={<FlagIcon />}
@@ -205,16 +239,16 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
                 borderColor: grey[300],
               },
             }}
-            onClick={handleClick}
+            onClick={priorityPopover.handleClick}
           >
             {t('priority.title')}
           </Button>
           {!disabledPopup && (
             <Popover
-              id={id}
-              open={open}
-              anchorEl={anchorEl}
-              onClose={handleClose}
+              id={priorityPopover.id}
+              open={priorityPopover.open}
+              anchorEl={priorityPopover.anchorEl}
+              onClose={priorityPopover.handleClose}
               anchorOrigin={{
                 vertical: 'bottom',
                 horizontal: 'center',
@@ -227,11 +261,10 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
               <PriorityList
                 id={priorityTodo.id}
                 onClickPriorityItem={handleClickPriorityTodoItem}
-                onClosePopover={handleClose}
+                onClosePopover={priorityPopover.handleClose}
               />
             </Popover>
           )}
-
           <Button
             color='secondary'
             size='small'

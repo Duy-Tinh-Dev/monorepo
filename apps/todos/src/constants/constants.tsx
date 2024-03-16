@@ -1,19 +1,19 @@
-import { PriorityItem } from '@components/todo-list/types';
+import { PriorityItem, PriorityLevels } from '@/components/todo-list/types';
 
 export const listPriority: PriorityItem[] = [
   {
     id: 1,
     color: '#dc4c3e',
-    level: 'high',
+    level: PriorityLevels.P1,
   },
   {
     id: 2,
     color: '#eb8909',
-    level: 'medium',
+    level: PriorityLevels.P2,
   },
   {
     id: 3,
     color: '#666666',
-    level: 'low',
+    level: PriorityLevels.P3,
   },
 ];

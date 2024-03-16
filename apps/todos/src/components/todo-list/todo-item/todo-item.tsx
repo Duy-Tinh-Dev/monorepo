@@ -5,21 +5,23 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
-import { grey } from '@mui/material/colors';
-import { BaseTodo, Todo } from '../types';
+import { grey, red } from '@mui/material/colors';
+import { Todo } from '../types';
 import TodoEditor from '../todo-editor/todo-editor';
 import { TodoAction } from '../todo-action';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { checkExpiredTime, formatDay } from '@/utils/day';
 
 interface ItemTodoProps {
   indexTodo?: number;
   idEditTodo: number;
   todo: Todo;
   isOpenEditTodo: boolean;
-  onToggleCompleteTodo: (idTodo: number) => void;
+  onToggleCompleteTodo: (todo: Todo) => void;
   onToggleEditTodo: (idTodo: number) => void;
-  onEditTodo: (todo: BaseTodo, id?: number) => void;
+  onEditTodo: (todo: Todo) => void;
   onDeleteTodo: (idTodo: number) => void;
   onDuplicate: (todo: Todo) => void;
   onSeeDetailTodo?: (
@@ -128,8 +130,9 @@ const TodoItem: React.FC<ItemTodoProps> = ({
                 display: 'block',
               },
               color: todo.priority.color,
+              alignSelf: 'flex-start',
             }}
-            onClick={() => onToggleCompleteTodo(todo.id)}
+            onClick={() => onToggleCompleteTodo(todo)}
           >
             <RadioButtonUncheckedIcon />
             <CheckOutlinedIcon
@@ -140,28 +143,74 @@ const TodoItem: React.FC<ItemTodoProps> = ({
               }}
             />
           </Button>
-          <Button
-            onClick={() => onSeeDetailTodo && onSeeDetailTodo(todo, indexTodo)}
-            fullWidth
+          <Stack
             sx={{
-              '&:hover': {
-                backgroundColor: 'transparent',
-              },
-              justifyContent: 'flex-start',
+              flexGrow: 1,
             }}
-            disableRipple
           >
-            <Typography
-              fontSize={14}
-              paragraph
+            <Button
+              onClick={() =>
+                onSeeDetailTodo && onSeeDetailTodo(todo, indexTodo)
+              }
+              fullWidth
               sx={{
-                textDecoration: todo.isComplete ? 'line-through' : 'none',
-                color: todo.isComplete ? 'grey.500' : 'black',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                },
+                justifyContent: 'flex-start',
               }}
+              disableRipple
             >
-              {todo.name}
-            </Typography>
-          </Button>
+              <Typography
+                fontSize={14}
+                paragraph
+                sx={{
+                  textDecoration: todo.isComplete ? 'line-through' : 'none',
+                  color: todo.isComplete ? 'grey.500' : 'black',
+                }}
+              >
+                {todo.name}
+              </Typography>
+            </Button>
+            {todo.expireTime && (
+              <Button
+                startIcon={
+                  <AccessTimeIcon
+                    sx={{
+                      color: checkExpiredTime(todo.expireTime)
+                        ? red[500]
+                        : grey[600],
+                    }}
+                  />
+                }
+                onClick={() =>
+                  onSeeDetailTodo && onSeeDetailTodo(todo, indexTodo)
+                }
+                sx={{
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                  },
+                  justifyContent: 'flex-start',
+                  fontSize: '12px',
+                  padding: '2px 8px',
+                }}
+                disableRipple
+              >
+                <Typography
+                  fontSize={14}
+                  paragraph
+                  sx={{
+                    textDecoration: todo.isComplete ? 'line-through' : 'none',
+                    color: checkExpiredTime(todo.expireTime)
+                      ? red[500]
+                      : grey[600],
+                  }}
+                >
+                  {formatDay(todo.expireTime, 'inbox')}
+                </Typography>
+              </Button>
+            )}
+          </Stack>
         </Stack>
         <Stack
           direction='row'

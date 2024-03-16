@@ -1,4 +1,4 @@
-import { Accordion } from '@components/accordion';
+import { Accordion } from '@/components/accordion';
 import { Comment } from '../types';
 import { useState } from 'react';
 import CommentItem from './comment-item';

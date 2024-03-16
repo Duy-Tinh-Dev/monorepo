@@ -1,4 +1,4 @@
-import { Todo } from '@components/todo-list/types';
+import { Todo } from '@/components/todo-list/types';
 import { UniqueIdentifier } from '@dnd-kit/core';
 
 export const getIndexTodoById = (

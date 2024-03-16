@@ -2,7 +2,7 @@ import { Button } from '@mui/material';
 import CommentEditor from './comment-editor';
 import { grey } from '@mui/material/colors';
 import { Comment } from '../types';
-import useDisclosure from '@hooks/useDisclosure';
+import { useDisclosure } from '@/hooks';
 import AttachmentOutlinedIcon from '@mui/icons-material/AttachmentOutlined';
 import { useTranslation } from '@op/i18n';
 

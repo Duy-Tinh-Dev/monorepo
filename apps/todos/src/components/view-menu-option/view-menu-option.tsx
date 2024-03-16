@@ -1,43 +1,32 @@
 import React from 'react';
 import { Box, Button, Popover, SxProps } from '@mui/material';
 import TuneIcon from '@mui/icons-material/Tune';
-import usePopover from '@hooks/usePopover';
+import { usePopover } from '@/hooks';
 import MenuOption from './menu-option';
 import { useTranslation } from '@op/i18n';
-import { FilterPriority, GroupBy, SortBy } from '@components/todo-list/types';
+import { filterSelector } from '@/redux/selectors';
+import { useSelector } from 'react-redux';
+import { GroupBy, PriorityBy, SortBy } from '@/components/todo-list/types';
 
 interface ViewMenuOptionProps {
-  groupBy?: GroupBy;
-  sortBy?: SortBy;
-  filterPriority?: FilterPriority;
-  onSetGroup?: (type: GroupBy) => void;
-  onSetSort?: (type: SortBy) => void;
-  onSetFilterSort?: (type: FilterPriority) => void;
   sx?: SxProps;
 }
 
-const ViewMenuOption: React.FC<ViewMenuOptionProps> = ({
-  groupBy,
-  sortBy,
-  filterPriority,
-  onSetSort,
-  onSetFilterSort,
-  onSetGroup,
-  sx,
-}) => {
+const ViewMenuOption: React.FC<ViewMenuOptionProps> = ({ sx }) => {
   const { t } = useTranslation(['common']);
   const { id, open, anchorEl, handleClick, handleClose } =
     usePopover('view-menu-option');
+  const { groupBy, sortBy, priority } = useSelector(filterSelector);
 
   const handleCountOption = () => {
     let count = 0;
-    if (groupBy !== 'None (default)') {
+    if (groupBy !== GroupBy.DEFAULT) {
       count++;
     }
-    if (sortBy !== 'Smart (default)') {
+    if (sortBy !== SortBy.DEFAULT) {
       count++;
     }
-    if (filterPriority !== 'All (default)') {
+    if (priority !== PriorityBy.DEFAULT) {
       count++;
     }
     return count;
@@ -73,14 +62,7 @@ const ViewMenuOption: React.FC<ViewMenuOptionProps> = ({
           horizontal: 'center',
         }}
       >
-        <MenuOption
-          groupBy={groupBy}
-          sortBy={sortBy}
-          filterPriority={filterPriority}
-          onSetSort={onSetSort}
-          onSetFilterSort={onSetFilterSort}
-          onSetGroup={onSetGroup}
-        />
+        <MenuOption />
       </Popover>
     </Box>
   );

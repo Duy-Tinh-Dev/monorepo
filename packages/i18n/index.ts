@@ -18,7 +18,6 @@ export default i18n
     lng: 'en',
     load: 'languageOnly',
     ns: [defaultNS],
-    // @ts-expect-error
     debug: process.env.NODE_ENV !== 'production',
     fallbackLng: 'en',
     interpolation: {

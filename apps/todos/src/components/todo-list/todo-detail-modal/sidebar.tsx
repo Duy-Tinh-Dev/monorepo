@@ -1,7 +1,7 @@
 import { Button, Popover, Stack, Typography } from '@mui/material';
 import FlagIcon from '@mui/icons-material/Flag';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
-import usePopover from '@hooks/usePopover';
+import { usePopover } from '@/hooks';
 import { PriorityList } from '../priority-list';
 import { PriorityItem, Todo } from '../types';
 

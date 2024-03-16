@@ -1,31 +1,27 @@
-import useDisclosure from '@hooks/useDisclosure';
-import { Accordion } from '@components/accordion';
-import TodoItem from '../todo-item/todo-item';
-import { BaseTodo, Todo } from '../types';
 import { useEffect, useState } from 'react';
-import AddSubTask from './add-sub-task';
-import { handleSortingByPriority } from '@utils/handleSortingByPriority';
-import {
-  DndContext,
-  PointerSensor,
-  closestCorners,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import { getIndexTodoById } from '@utils/getIndexTodoById';
-import { checkPriority } from '@utils/checkPriority';
+import { DndContext, DragEndEvent, closestCorners } from '@dnd-kit/core';
 import {
   SortableContext,
   arrayMove,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import { useDisclosure, useSensors } from '@/hooks';
+import { Accordion } from '@/components/accordion';
+import {
+  handleSortingByPriority,
+  getIndexTodoById,
+  checkPriority,
+} from '@/utils';
+import TodoItem from '../todo-item/todo-item';
+import AddSubTask from './add-sub-task';
+import { Todo } from '../types';
 
 interface SubTaskProps {
   subTasks: Todo[];
   onSeeDetailTodo: (nextTodo: Todo) => void;
-  onToggleCompleteSubTodo: (idSubTodo: number) => void;
+  onToggleCompleteSubTodo: (todo: Todo) => void;
   onAddSubTodo: (newTodo: Todo) => void;
-  onEditSubTodo: (idSubTodo: number, todo: BaseTodo) => void;
+  onEditSubTodo: (todo: Todo) => void;
   onDeleteSubTodo: (idSubTodo: number) => void;
   onDuplicateSubTodo: (subTodo: Todo) => void;
   onUpdateSubTodos: (subTasks: Todo[]) => void;
@@ -50,13 +46,7 @@ const SubTasks: React.FC<SubTaskProps> = ({
     setListTodoSorting(handleSortingByPriority(subTasks));
   }, [subTasks]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 10,
-      },
-    })
-  );
+  const { sensors } = useSensors();
 
   const handleToggleEditTodo = (idTodo: number) => {
     setIdEditTodo(idTodo);
@@ -64,71 +54,19 @@ const SubTasks: React.FC<SubTaskProps> = ({
     setIsOpenEditTodo(!isOpenEditTodo);
   };
 
-  const handleToggleCompleteSubTodo = (idSubTodo: number) => {
-    const newListTodo = listTodoSorting.map((subTask) => {
-      if (subTask.id === idSubTodo) {
-        return {
-          ...subTask,
-          isComplete: !subTask.isComplete,
-        };
-      }
-      return subTask;
-    });
+  const handleDragTodo = ({ active, over }: DragEndEvent) => {
+    if (over === null || active.id === over?.id) return;
 
-    setListTodoSorting(newListTodo);
-    onToggleCompleteSubTodo(idSubTodo);
-  };
+    const originalPos = getIndexTodoById(listTodoSorting, active.id);
+    const newPos = getIndexTodoById(listTodoSorting, over?.id);
+    if (checkPriority(listTodoSorting, originalPos, newPos)) {
+      setListTodoSorting((listTodo) => {
+        const newListTodo = arrayMove(listTodo, originalPos, newPos);
+        onUpdateSubTodos(newListTodo);
 
-  const handleAddSubTodo = (newTodo: Todo) => {
-    const newListTodo = [...listTodoSorting, newTodo];
-
-    onAddSubTodo(newTodo);
-    setListTodoSorting(handleSortingByPriority(newListTodo));
-  };
-
-  const handleEditSubTodo = (todo: BaseTodo, id?: number) => {
-    if (id) {
-      onEditSubTodo(id, {
-        name: todo.name,
-        description: todo.description,
-        priority: todo.priority,
+        return newListTodo;
       });
     }
-
-    const newListTodo = listTodoSorting.map((subTask) => {
-      if (subTask.id === id) {
-        return {
-          ...subTask,
-          name: todo.name,
-          description: todo.description,
-          priority: todo.priority,
-        };
-      }
-
-      return subTask;
-    });
-
-    setListTodoSorting(handleSortingByPriority(newListTodo));
-  };
-
-  const handleDeleteSubTodo = (idSubTodo: number) => {
-    const newListTodo = listTodoSorting.filter(
-      (subTask) => subTask.id !== idSubTodo
-    );
-    setListTodoSorting(handleSortingByPriority(newListTodo));
-    onDeleteSubTodo(idSubTodo);
-  };
-
-  const handleDuplicateTodo = (subTodo: Todo) => {
-    const newTodo = {
-      ...subTodo,
-      id: new Date().getTime(),
-    };
-
-    const newListTodo = [...listTodoSorting, newTodo];
-
-    setListTodoSorting(handleSortingByPriority(newListTodo));
-    onDuplicateSubTodo(subTodo);
   };
 
   if (listTodoSorting.length > 0) {
@@ -137,20 +75,7 @@ const SubTasks: React.FC<SubTaskProps> = ({
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
-          onDragEnd={({ active, over }) => {
-            if (over !== null && active.id !== over?.id) {
-              const originalPos = getIndexTodoById(listTodoSorting, active.id);
-              const newPos = getIndexTodoById(listTodoSorting, over?.id);
-              if (checkPriority(listTodoSorting, originalPos, newPos)) {
-                setListTodoSorting((listTodo) => {
-                  const newListTodo = arrayMove(listTodo, originalPos, newPos);
-                  onUpdateSubTodos(newListTodo);
-
-                  return newListTodo;
-                });
-              }
-            }
-          }}
+          onDragEnd={handleDragTodo}
         >
           <SortableContext
             items={listTodoSorting}
@@ -162,11 +87,11 @@ const SubTasks: React.FC<SubTaskProps> = ({
                 idEditTodo={idEditTodo}
                 todo={subTask}
                 isOpenEditTodo={isOpenEditTodo}
-                onToggleCompleteTodo={handleToggleCompleteSubTodo}
+                onToggleCompleteTodo={onToggleCompleteSubTodo}
                 onToggleEditTodo={handleToggleEditTodo}
-                onEditTodo={handleEditSubTodo}
-                onDeleteTodo={handleDeleteSubTodo}
-                onDuplicate={handleDuplicateTodo}
+                onEditTodo={onEditSubTodo}
+                onDeleteTodo={onDeleteSubTodo}
+                onDuplicate={onDuplicateSubTodo}
                 onSeeDetailTodo={onSeeDetailTodo}
               />
             ))}
@@ -174,7 +99,7 @@ const SubTasks: React.FC<SubTaskProps> = ({
               isOpen={isOpen}
               onOpen={onOpen}
               onClose={onClose}
-              onAddSubTodo={handleAddSubTodo}
+              onAddSubTodo={onAddSubTodo}
             />
           </SortableContext>
         </DndContext>
@@ -187,7 +112,7 @@ const SubTasks: React.FC<SubTaskProps> = ({
       isOpen={isOpen}
       onOpen={onOpen}
       onClose={onClose}
-      onAddSubTodo={handleAddSubTodo}
+      onAddSubTodo={onAddSubTodo}
     />
   );
 };

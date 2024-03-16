@@ -1,5 +1,5 @@
-import { Sidebar } from '@components/sidebar';
-import { TodoList } from '@components/todo-list';
+import { Sidebar } from '@/components/sidebar';
+import { TodoList } from '@/components/todo-list';
 import { Stack } from '@mui/material';
 
 const Home = () => {

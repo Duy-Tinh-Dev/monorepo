@@ -1,4 +1,3 @@
-import { AuthLayout } from '@layouts/auth-layout';
 import {
   Button,
   Divider,
@@ -8,21 +7,22 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { SignInMethod } from '@components/sign-in-method';
 import { useTranslation } from '@op/i18n';
-import backgroundLogin from '@assets/background-login.png';
+import backgroundLogin from '@/assets/background-login.png';
 import { useNavigate } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { FormData } from '@components/todo-list/types';
-import useValidationSchema from '@hooks/useValidationSchema';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CircularProgress from '@mui/material/CircularProgress';
-import { auth } from '@config/firebase';
-import { useAuth } from '@context/auth-context';
+import { useAuth } from '@/contexts/auth-context';
+import {useValidationSchema} from '@/hooks';
 import { useState } from 'react';
+import { AuthLayout } from '@/layouts/auth-layout';
+import { SignInMethod } from '@/components/sign-in-method';
+import { FormData } from '@/components/todo-list/types';
+import { auth } from '@/config/firebase';
 
 const SignIn = () => {
   const { t } = useTranslation(['auth']);

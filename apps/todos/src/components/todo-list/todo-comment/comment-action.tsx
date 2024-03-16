@@ -11,12 +11,12 @@ import {
   SxProps,
   Typography,
 } from '@mui/material';
-import usePopover from '@hooks/usePopover';
+import { usePopover } from '@/hooks';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import useDisclosure from '@hooks/useDisclosure';
-import { ConfirmDialog } from '@components/confirm-dialog';
+import {useDisclosure} from '@/hooks';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useTranslation } from '@op/i18n';
 
 interface CommentActionProps {

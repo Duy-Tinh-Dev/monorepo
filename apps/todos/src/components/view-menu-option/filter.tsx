@@ -1,27 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import {
-  MenuOptionItem,
-  MenuOptionProps,
-} from '@components/view-menu-option/menu-option';
+import { MenuOptionItem } from '@/components/view-menu-option/menu-option';
 import { useTranslation } from '@op/i18n';
 import FlagOutlinedIcon from '@mui/icons-material/FlagOutlined';
-import SubMenuOption from '@components/view-menu-option/sub-menu-option';
+import SubMenuOption from '@/components/view-menu-option/sub-menu-option';
 
-interface FilterProps extends MenuOptionProps {
+interface FilterProps {
   isReset: boolean;
   setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const Filter: React.FC<FilterProps> = ({
-  isReset,
-  setIsReset,
-  filterPriority,
-  groupBy,
-  onSetFilterSort,
-  onSetGroup,
-  onSetSort,
-  sortBy,
-}) => {
+const Filter: React.FC<FilterProps> = ({ isReset, setIsReset }) => {
   const { t } = useTranslation(['option']);
   const menuFilterDefault: MenuOptionItem[] = [
     {
@@ -81,12 +69,6 @@ const Filter: React.FC<FilterProps> = ({
       type={item.type}
       selected={item.selected}
       subMenu={item.subMenu}
-      groupBy={groupBy}
-      sortBy={sortBy}
-      filterPriority={filterPriority}
-      onSetSort={onSetSort}
-      onSetFilterSort={onSetFilterSort}
-      onSetGroup={onSetGroup}
       onChangeMenu={handleChangeMenuFilter}
     />
   ));

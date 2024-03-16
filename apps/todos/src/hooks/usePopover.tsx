@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const usePopover = (idName: string) => {
+export const usePopover = (idName: string) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
   const id = open ? idName : undefined;
@@ -21,5 +21,3 @@ const usePopover = (idName: string) => {
     handleClose,
   };
 };
-
-export default usePopover;

@@ -1,11 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { SignOutUser, auth } from '@config/firebase';
 import { useNavigate } from 'react-router-dom';
-import {
-  getDataFromLocalStorage,
-  saveDataToLocalStorage,
-} from '@utils/localStorageUtil';
+import { getDataFromLocalStorage, saveDataToLocalStorage } from '@/utils/localStorageUtil';
+import { SignOutUser, auth } from '@/config/firebase';
 
 type UserContextType = {
   currentUser: User | null;

@@ -6,8 +6,8 @@ import '@fontsource/roboto/700.css';
 import '@fontsource/material-icons';
 import { Route, Routes } from 'react-router-dom';
 import { HomePage } from './pages/home';
-import { SignIn } from '@pages/signin';
-import { SignUp } from '@pages/signup';
+import { SignIn } from './pages/signin';
+import { SignUp } from './pages/signup';
 
 const App: React.FC = () => {
   return (

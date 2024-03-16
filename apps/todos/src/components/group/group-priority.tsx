@@ -1,23 +1,26 @@
 import React, { useState } from 'react';
 import { Box, Button, Divider, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { TodoEditor } from '@components/todo-list/todo-editor';
-import { LevelPriority } from '@components/todo-list/types';
-import { TodoItem } from '@components/todo-list/todo-item';
-import { Group } from './types';
+import { TodoEditor } from '@/components/todo-list/todo-editor';
+import { PriorityLevels, Todo } from '@/components/todo-list/types';
+import { TodoItem } from '@/components/todo-list/todo-item';
 import { useTranslation } from '@op/i18n';
+import {
+  addTodoApi,
+  deleteTodoApi,
+  duplicateTodoApi,
+  toggleCompleteTodoApi,
+} from 'src/api';
 
-interface GroupPriorityProps extends Group {
-  level: LevelPriority;
+interface GroupPriorityProps {
+  level: PriorityLevels;
+  listTodoSorting: Todo[];
+  onSeeDetailTodo: (todo: Todo, index?: number) => void;
 }
 
 const GroupPriority: React.FC<GroupPriorityProps> = ({
   listTodoSorting,
   level,
-  onDeleteTodo,
-  onDuplicate,
-  onEditTodo,
-  onToggleCompleteTodo,
   onSeeDetailTodo,
 }) => {
   const { t } = useTranslation(['common']);
@@ -40,13 +43,13 @@ const GroupPriority: React.FC<GroupPriorityProps> = ({
     setIdEditTodo(idTodo);
   };
 
-  const getValueLevel = (level: LevelPriority) => {
+  const getValueLevel = (level: PriorityLevels) => {
     switch (level) {
-      case 'low':
+      case PriorityLevels.P3:
         return 3;
-      case 'medium':
+      case PriorityLevels.P2:
         return 2;
-      case 'high':
+      case PriorityLevels.P1:
         return 1;
       default:
         return 1;
@@ -58,8 +61,7 @@ const GroupPriority: React.FC<GroupPriorityProps> = ({
       {filterListTodo.length > 0 && (
         <Box marginBottom={4}>
           <Typography fontWeight='bold' fontSize='18px' marginBottom={1.5}>
-            {t('priority.title')}
-            {getValueLevel(level)}
+            {t('priority.title')} {getValueLevel(level)}
           </Typography>
           <Divider
             sx={{
@@ -72,11 +74,11 @@ const GroupPriority: React.FC<GroupPriorityProps> = ({
               todo={todo}
               idEditTodo={idEditTodo}
               isOpenEditTodo={isOpenEditTodo}
-              onToggleCompleteTodo={onToggleCompleteTodo}
-              onDeleteTodo={onDeleteTodo}
+              onToggleCompleteTodo={toggleCompleteTodoApi}
+              onDeleteTodo={deleteTodoApi}
               onToggleEditTodo={handleToggleEditTodo}
-              onEditTodo={onEditTodo}
-              onDuplicate={onDuplicate}
+              onEditTodo={addTodoApi}
+              onDuplicate={duplicateTodoApi}
               onSeeDetailTodo={onSeeDetailTodo}
             />
           ))}
@@ -116,6 +118,7 @@ const GroupPriority: React.FC<GroupPriorityProps> = ({
               onCancelAdd={handleToggleAddTodo}
               level={level}
               disabledPopup
+              onAddTodo={addTodoApi}
             />
           )}
         </Box>

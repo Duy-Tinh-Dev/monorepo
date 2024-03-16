@@ -1,4 +1,4 @@
-import { Todo } from '@components/todo-list/types';
+import { Todo } from '@/components/todo-list/types';
 
 export const handleSortingByPriority = (array: Todo[]): Todo[] => {
   return array.slice().sort((a, b) => {

@@ -12,8 +12,9 @@ import GridViewIcon from '@mui/icons-material/GridView';
 import AddIcon from '@mui/icons-material/Add';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useTranslation } from '@op/i18n';
-import { TodoEditor } from '@components/todo-list/todo-editor';
-import { useAuth } from '@context/auth-context';
+import { addTodoApi } from 'src/api';
+import { TodoEditor } from '../todo-list/todo-editor';
+import { useAuth } from '@/contexts/auth-context';
 
 interface PopupTodoEditorProps {
   onClosePopup: () => void;
@@ -35,7 +36,7 @@ const PopupTodoEditor: React.FC<PopupTodoEditorProps> = ({ onClosePopup }) => {
       borderRadius={2.5}
       boxShadow={6}
     >
-      <TodoEditor onCancelEdit={onClosePopup} />
+      <TodoEditor onCancelEdit={onClosePopup} onAddTodo={addTodoApi} />
     </Box>
   );
 };
@@ -202,19 +203,17 @@ const Sidebar = () => {
             <Typography fontWeight={500} fontSize='14px' marginRight={1}>
               {t('sidebar:addTeam')}
             </Typography>
-            <Button
-              color='success'
+            <Box
               sx={{
-                '&.MuiButtonBase-root': {
-                  backgroundColor: '#e6f3e9',
-                  minWidth: '24px',
-                  padding: '4px 6px',
-                  fontSize: '10px',
-                },
+                borderRadius: '6px',
+                backgroundColor: '#e6f3e9',
+                minWidth: '24px',
+                padding: '4px 6px',
+                fontSize: '10px',
               }}
             >
               {t('sidebar:new')}
-            </Button>
+            </Box>
           </Button>
           <Button
             startIcon={<LogoutIcon />}

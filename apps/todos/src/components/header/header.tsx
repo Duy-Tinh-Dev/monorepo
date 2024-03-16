@@ -1,7 +1,7 @@
-import { LogoIcon } from '@components/icon';
 import { Stack, SxProps } from '@mui/material';
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { LogoIcon } from '../icon';
 
 interface HeaderProps {
   sx?: SxProps;

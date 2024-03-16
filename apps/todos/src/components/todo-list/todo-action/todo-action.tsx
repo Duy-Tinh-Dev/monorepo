@@ -2,14 +2,14 @@ import React, { useEffect } from 'react';
 import { Box, Button, Popover } from '@mui/material';
 import MoreHorizOutlinedIcon from '@mui/icons-material/MoreHorizOutlined';
 import MenuActionTodo from './menu-action-todo';
-import { BaseTodo, Todo } from '../types';
-import usePopover from '@hooks/usePopover';
+import { Todo } from '../types';
+import { usePopover } from '@/hooks';
 
 interface TodoActionProps {
   todo: Todo;
   isOpenMenu: boolean;
   onToggleEditTodo: (idTodo: number) => void;
-  onEditTodo: (todo: BaseTodo, id?: number) => void;
+  onEditTodo: (todo: Todo) => void;
   onDeleteTodo: (idTodo: number) => void;
   onDuplicate: (todo: Todo) => void;
   setIsOpenMenu: React.Dispatch<React.SetStateAction<boolean>>;

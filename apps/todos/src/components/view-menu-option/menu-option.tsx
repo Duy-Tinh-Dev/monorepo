@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from 'react';
+import { ReactElement, useState } from 'react';
 import {
   Button,
   Divider,
@@ -16,9 +16,10 @@ import ViewWeekOutlinedIcon from '@mui/icons-material/ViewWeekOutlined';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useTranslation } from '@op/i18n';
 import { SubMenu } from './sub-menu-option';
-import { FilterPriority, GroupBy, SortBy } from '@components/todo-list/types';
-import Sort from '@components/view-menu-option/sort';
-import Filter from '@components/view-menu-option/filter';
+import Sort from '@/components/view-menu-option/sort';
+import Filter from '@/components/view-menu-option/filter';
+import { useDispatch } from 'react-redux';
+import { resetFilter } from '@/redux/slices/filterSlice';
 
 export interface MenuOptionItem {
   icon: ReactElement<SvgIconProps>;
@@ -28,37 +29,15 @@ export interface MenuOptionItem {
   subMenu: SubMenu[];
 }
 
-export interface MenuOptionProps {
-  groupBy?: GroupBy;
-  sortBy?: SortBy;
-  filterPriority?: FilterPriority;
-  onSetGroup?: (type: GroupBy) => void;
-  onSetSort?: (type: SortBy) => void;
-  onSetFilterSort?: (type: FilterPriority) => void;
-}
-
-const MenuOption: React.FC<MenuOptionProps> = ({
-  groupBy,
-  sortBy,
-  filterPriority,
-  onSetSort,
-  onSetFilterSort,
-  onSetGroup,
-}) => {
+const MenuOption = () => {
   const { t } = useTranslation(['common', 'option']);
+  const dispatch = useDispatch();
+
   const [isReset, setIsReset] = useState(false);
 
   const handleReset = () => {
     setIsReset(true);
-    if (onSetGroup) {
-      onSetGroup('None (default)');
-    }
-    if (onSetSort) {
-      onSetSort('Smart (default)');
-    }
-    if (onSetFilterSort) {
-      onSetFilterSort('All (default)');
-    }
+    dispatch(resetFilter());
   };
 
   return (
@@ -150,16 +129,7 @@ const MenuOption: React.FC<MenuOptionProps> = ({
             <HelpOutlineIcon fontSize='small' />
           </ListItemIcon>
         </MenuItem>
-        <Sort
-          isReset={isReset}
-          groupBy={groupBy}
-          sortBy={sortBy}
-          filterPriority={filterPriority}
-          onSetSort={onSetSort}
-          onSetFilterSort={onSetFilterSort}
-          onSetGroup={onSetGroup}
-          setIsReset={setIsReset}
-        />
+        <Sort isReset={isReset} setIsReset={setIsReset} />
         <Divider />
         <MenuItem>
           <ListItemText>
@@ -176,16 +146,7 @@ const MenuOption: React.FC<MenuOptionProps> = ({
             <HelpOutlineIcon fontSize='small' />
           </ListItemIcon>
         </MenuItem>
-        <Filter
-          isReset={isReset}
-          setIsReset={setIsReset}
-          groupBy={groupBy}
-          sortBy={sortBy}
-          filterPriority={filterPriority}
-          onSetSort={onSetSort}
-          onSetFilterSort={onSetFilterSort}
-          onSetGroup={onSetGroup}
-        />
+        <Filter isReset={isReset} setIsReset={setIsReset} />
         <Divider />
         <MenuItem onClick={handleReset}>
           <ListItemText>

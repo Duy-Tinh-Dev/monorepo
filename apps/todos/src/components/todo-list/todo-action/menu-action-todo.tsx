@@ -14,17 +14,17 @@ import FlagIcon from '@mui/icons-material/Flag';
 import AddToPhotosIcon from '@mui/icons-material/AddToPhotos';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { grey } from '@mui/material/colors';
-import useDisclosure from '@hooks/useDisclosure';
-import { ConfirmDialog } from '@components/confirm-dialog';
-import { listPriority } from '@constants/constants';
-import { BaseTodo, PriorityItem, Todo } from '../types';
+import { useDisclosure } from '@/hooks';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { listPriority } from '@/constants';
+import { PriorityItem, Todo } from '../types';
 import { useTranslation } from '@op/i18n';
 
 interface MenuActionTodoProps {
   todo: Todo;
   onDeleteTodo: (idTodo: number) => void;
   onToggleEditTodo: (idTodo: number) => void;
-  onEditTodo: (todo: BaseTodo, id: number) => void;
+  onEditTodo: (todo: Todo) => void;
   onDuplicate: (todo: Todo) => void;
   onClose: () => void;
 }
@@ -39,6 +39,16 @@ const MenuActionTodo: React.FC<MenuActionTodoProps> = ({
 }) => {
   const deleteDialogDisClosure = useDisclosure({});
   const { t } = useTranslation(['common']);
+
+  const handleEditPriority = (level: PriorityItem) => {
+    const newTodo = {
+      ...todo,
+      priority: level,
+    };
+
+    onEditTodo(newTodo);
+    onClose();
+  };
 
   return (
     <Paper
@@ -94,13 +104,7 @@ const MenuActionTodo: React.FC<MenuActionTodoProps> = ({
                   },
                 }}
                 onClick={() => {
-                  const baseTodo: BaseTodo = {
-                    name: todo.name,
-                    description: todo.description,
-                    priority: item,
-                  };
-                  onEditTodo(baseTodo, todo.id);
-                  onClose();
+                  handleEditPriority(item);
                 }}
               >
                 <FlagIcon

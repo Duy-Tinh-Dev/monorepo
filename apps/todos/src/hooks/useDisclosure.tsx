@@ -4,7 +4,7 @@ interface IDisclosure {
   initialState?: boolean;
 }
 
-const useDisclosure = ({ initialState = false }: IDisclosure) => {
+export const useDisclosure = ({ initialState = false }: IDisclosure) => {
   const [isOpen, setIsOpen] = useState(initialState);
 
   const onOpen = () => {
@@ -26,5 +26,3 @@ const useDisclosure = ({ initialState = false }: IDisclosure) => {
     onToggle,
   };
 };
-
-export default useDisclosure;

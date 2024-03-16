@@ -3,7 +3,7 @@ import * as yup from 'yup';
 
 const emailRegex = /^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/;
 
-const useValidationSchema = () => {
+export const useValidationSchema = () => {
   const { t } = useTranslation(['auth']);
 
   const validationSchema = yup
@@ -22,5 +22,3 @@ const useValidationSchema = () => {
     validationSchema,
   };
 };
-
-export default useValidationSchema;

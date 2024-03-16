@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Input, Stack } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import useDisclosure from '@hooks/useDisclosure';
+import { useDisclosure } from '@/hooks';
 import { useTranslation } from '@op/i18n';
 import { Todo } from '../types';
 

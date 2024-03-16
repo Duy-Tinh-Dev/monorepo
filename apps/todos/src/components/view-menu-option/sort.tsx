@@ -2,27 +2,15 @@ import React, { useEffect, useState } from 'react';
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 import SwapVertOutlinedIcon from '@mui/icons-material/SwapVertOutlined';
 import { useTranslation } from '@op/i18n';
-import {
-  MenuOptionItem,
-  MenuOptionProps,
-} from '@components/view-menu-option/menu-option';
-import SubMenuOption from '@components/view-menu-option/sub-menu-option';
+import { MenuOptionItem } from '@/components/view-menu-option/menu-option';
+import SubMenuOption from '@/components/view-menu-option/sub-menu-option';
 
-interface SortProps extends MenuOptionProps {
+interface SortProps {
   isReset: boolean;
   setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const Sort: React.FC<SortProps> = ({
-  filterPriority,
-  groupBy,
-  sortBy,
-  isReset,
-  onSetFilterSort,
-  onSetGroup,
-  onSetSort,
-  setIsReset,
-}) => {
+const Sort: React.FC<SortProps> = ({ isReset, setIsReset }) => {
   const { t } = useTranslation(['option']);
 
   const menuSortDefault: MenuOptionItem[] = [
@@ -93,12 +81,6 @@ const Sort: React.FC<SortProps> = ({
       type={item.type}
       selected={item.selected}
       subMenu={item.subMenu}
-      groupBy={groupBy}
-      sortBy={sortBy}
-      filterPriority={filterPriority}
-      onSetSort={onSetSort}
-      onSetFilterSort={onSetFilterSort}
-      onSetGroup={onSetGroup}
       onChangeMenu={handleChangeMenuSort}
     />
   ));

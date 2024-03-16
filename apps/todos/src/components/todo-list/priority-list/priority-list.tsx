@@ -8,9 +8,9 @@ import {
 } from '@mui/material';
 import FlagIcon from '@mui/icons-material/Flag';
 import CheckIcon from '@mui/icons-material/Check';
-import { PriorityItem } from '@components/todo-list/types';
-import { listPriority } from '@constants/constants';
 import { useTranslation } from '@op/i18n';
+import { PriorityItem } from '../types';
+import { listPriority } from '@/constants';
 
 interface IPriorityListProps {
   id: number;

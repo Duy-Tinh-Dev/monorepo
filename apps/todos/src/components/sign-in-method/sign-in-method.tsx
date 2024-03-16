@@ -1,14 +1,13 @@
-import React from 'react';
 import { Button, Stack } from '@mui/material';
 import { useTranslation } from '@op/i18n';
-import { AppleIcon, FacebookIcon, GoogleIcon } from '@components/icon';
 import {
   FacebookAuthProvider,
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
-import { auth } from '@config/firebase';
-import { useAuth } from '@context/auth-context';
+import { useAuth } from '@/contexts/auth-context';
+import { auth } from '@/config/firebase';
+import { AppleIcon, FacebookIcon, GoogleIcon } from '../icon';
 
 const SignInMethod = () => {
   const { t } = useTranslation(['auth']);

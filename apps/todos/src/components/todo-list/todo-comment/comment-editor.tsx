@@ -31,25 +31,21 @@ const CommentEditor = ({
   };
 
   const handleAddComment = () => {
-    const contentTrim = content.trim();
-    if (contentTrim !== '') {
-      onAddComment &&
-        onAddComment({
-          id: new Date().getTime(),
-          name: 'default',
-          content: contentTrim,
-        });
-      setName('');
-      setContent('');
-      onClose();
-    }
+    onAddComment &&
+      onAddComment({
+        id: new Date().getTime(),
+        name: 'default',
+        content: content.trim(),
+      });
+    setName('');
+    setContent('');
+    onClose();
   };
 
   const handleEditComment = () => {
-    const contentTrim = content.trim();
-    if (contentTrim !== '' && comment) {
+    if (comment) {
       onEditComment &&
-        onEditComment({ id: comment.id, name, content: contentTrim });
+        onEditComment({ id: comment.id, name, content: content.trim() });
       setName('');
       setContent('');
       onClose();
@@ -124,6 +120,7 @@ const CommentEditor = ({
             }}
             variant='contained'
             onClick={handleAddComment}
+            disabled={content.trim() === ''}
           >
             {t('actions.save')}
           </Button>
