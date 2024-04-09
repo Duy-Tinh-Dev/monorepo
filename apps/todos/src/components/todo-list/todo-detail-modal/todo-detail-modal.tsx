@@ -22,7 +22,11 @@ import {
   updateSubTodos,
 } from './utils';
 import { useSelector } from 'react-redux';
-import { todoListSelector } from '@/redux/selectors';
+import {
+  listTodoProjectSelector,
+  projectSelectedSelector,
+  todoListSelector,
+} from '@/redux/selectors';
 
 interface TodoDetailProps {
   isComment?: boolean;
@@ -47,8 +51,10 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
   onNextTodoDetail,
   onPreviousTodoDetail,
 }) => {
-  const listTodo = useSelector(todoListSelector);
+  const listTodo = useSelector(todoListSelector) ?? [];
   const [currentTodo, setCurrentTodo] = useState<Todo[]>([todo]);
+  const listTodoProject = useSelector(listTodoProjectSelector) ?? [];
+  const projectSelected = useSelector(projectSelectedSelector);
 
   useEffect(() => {
     setCurrentTodo([todo]);
@@ -116,7 +122,16 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
       ];
     });
 
-    toggleCompleteSubTodo(currentTodo.slice(-1)[0].id, todo.id, listTodo);
+    if (projectSelected) {
+      toggleCompleteSubTodo(
+        currentTodo.slice(-1)[0].id,
+        todo.id,
+        listTodoProject,
+        projectSelected
+      );
+    } else {
+      toggleCompleteSubTodo(currentTodo.slice(-1)[0].id, todo.id, listTodo);
+    }
   };
 
   const handleAddSubTodo = (newTodo: Todo) => {
@@ -130,12 +145,19 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
       ];
     });
 
-    addSubTodo(currentTodo.slice(-1)[0].id, newTodo, listTodo);
+    if (projectSelected) {
+      addSubTodo(
+        currentTodo.slice(-1)[0].id,
+        newTodo,
+        listTodoProject,
+        projectSelected
+      );
+    } else {
+      addSubTodo(currentTodo.slice(-1)[0].id, newTodo, listTodo);
+    }
   };
 
   const handleEditSubTodo = (todo: Todo) => {
-    editSubTodo(currentTodo.slice(-1)[0].id, todo.id, todo, listTodo);
-
     const updatedSubTasks = currentTodo.slice(-1)[0].subTasks.map((subTask) => {
       if (subTask.id === todo.id) {
         return {
@@ -155,6 +177,18 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
         },
       ];
     });
+
+    if (projectSelected) {
+      editSubTodo(
+        currentTodo.slice(-1)[0].id,
+        todo.id,
+        todo,
+        listTodoProject,
+        projectSelected
+      );
+    } else {
+      editSubTodo(currentTodo.slice(-1)[0].id, todo.id, todo, listTodo);
+    }
   };
 
   const handleDeleteSubTodo = (idSubTodo: number) => {
@@ -169,7 +203,17 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
         },
       ];
     });
-    deleteSubTodo(currentTodo.slice(-1)[0].id, idSubTodo, listTodo);
+
+    if (projectSelected) {
+      deleteSubTodo(
+        currentTodo.slice(-1)[0].id,
+        idSubTodo,
+        listTodoProject,
+        projectSelected
+      );
+    } else {
+      deleteSubTodo(currentTodo.slice(-1)[0].id, idSubTodo, listTodo);
+    }
   };
 
   const handleDuplicateSubTodo = (todo: Todo) => {
@@ -183,7 +227,16 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
       ];
     });
 
-    duplicateSubTodo(currentTodo.slice(-1)[0].id, todo, listTodo);
+    if (projectSelected) {
+      duplicateSubTodo(
+        currentTodo.slice(-1)[0].id,
+        todo,
+        listTodoProject,
+        projectSelected
+      );
+    } else {
+      duplicateSubTodo(currentTodo.slice(-1)[0].id, todo, listTodo);
+    }
   };
 
   const handleEditTodoDetail = (todo: Todo) => {
@@ -196,7 +249,12 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
         },
       ];
     });
-    editTodoDetail(todo.id, todo, listTodo);
+
+    if (projectSelected) {
+      editTodoDetail(todo.id, todo, listTodoProject, projectSelected);
+    } else {
+      editTodoDetail(todo.id, todo, listTodo);
+    }
   };
 
   const handleAddComment = (comment: Comment) => {
@@ -209,7 +267,17 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
         },
       ];
     });
-    addComment(currentTodo.slice(-1)[0].id, comment, listTodo);
+
+    if (projectSelected) {
+      addComment(
+        currentTodo.slice(-1)[0].id,
+        comment,
+        listTodoProject,
+        projectSelected
+      );
+    } else {
+      addComment(currentTodo.slice(-1)[0].id, comment, listTodo);
+    }
   };
 
   const handleEditComment = (comment: Comment) => {
@@ -232,7 +300,17 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
         },
       ];
     });
-    editComment(currentTodo.slice(-1)[0].id, comment, listTodo);
+
+    if (projectSelected) {
+      editComment(
+        currentTodo.slice(-1)[0].id,
+        comment,
+        listTodoProject,
+        projectSelected
+      );
+    } else {
+      editComment(currentTodo.slice(-1)[0].id, comment, listTodo);
+    }
   };
 
   const handleDeleteComment = (idComment: number) => {
@@ -247,25 +325,51 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
         },
       ];
     });
-    deleteComment(currentTodo.slice(-1)[0].id, idComment, listTodo);
+
+    if (projectSelected) {
+      deleteComment(
+        currentTodo.slice(-1)[0].id,
+        idComment,
+        listTodoProject,
+        projectSelected
+      );
+    } else {
+      deleteComment(currentTodo.slice(-1)[0].id, idComment, listTodo);
+    }
   };
 
   const handleUpdateSubTodos = (subTasks: Todo[]) => {
-    updateSubTodos(currentTodo.slice(-1)[0].id, subTasks, listTodo);
+    if (projectSelected) {
+      updateSubTodos(
+        currentTodo.slice(-1)[0].id,
+        subTasks,
+        listTodoProject,
+        projectSelected
+      );
+    } else {
+      updateSubTodos(currentTodo.slice(-1)[0].id, subTasks, listTodo);
+    }
   };
 
   return (
     <Dialog
       open={isOpen}
       onClose={onClose}
-      sx={{
+      sx={(theme) => ({
         '& .MuiDialog-paper': {
           borderRadius: 2.5,
           width: '100%',
           height: '80%',
         },
-      }}
-      maxWidth='md'
+        '& > .MuiDialog-container > .MuiPaper-elevation': {
+          [theme.breakpoints.up('sm')]: {
+            margin: '32px',
+          },
+          [theme.breakpoints.down('sm')]: {
+            margin: '16px',
+          },
+        },
+      })}
     >
       <Header
         isDisabledNext={isDisabledNextTodo}
@@ -275,62 +379,93 @@ const TodoDetailModal: React.FC<TodoDetailProps> = ({
         onClose={onClose}
       />
       <Divider />
-      <Stack direction='row' height='100%'>
-        <Stack width='70%' paddingX={2} paddingY={1.5}>
+      <Stack
+        height='100%'
+        sx={(theme) => ({
+          [theme.breakpoints.up('sm')]: {
+            flexDirection: 'row',
+          },
+          [theme.breakpoints.down('sm')]: {
+            flexDirection: 'column',
+          },
+        })}
+      >
+        <Stack
+          sx={(theme) => ({
+            [theme.breakpoints.up('sm')]: {
+              width: '70%',
+            },
+            [theme.breakpoints.down('sm')]: {
+              width: '100%',
+            },
+          })}
+          paddingX={2}
+          paddingY={1.5}
+        >
           {currentTodo.length > 1 && (
             <NavigationTodo
               currentTodo={currentTodo}
               onBackDetailTodo={handleBackDetailTodo}
             />
           )}
-          <Stack direction='row'>
-            <TodoStatus
-              onEditTodo={handleEditTodoDetail}
-              todo={currentTodo.slice(-1)[0]}
+          <TodoContent
+            onEditTodo={handleEditTodoDetail}
+            todo={currentTodo.slice(-1)[0]}
+          />
+          <Stack
+            sx={(theme) => ({
+              [theme.breakpoints.up('sm')]: {
+                marginLeft: '32px',
+              },
+              [theme.breakpoints.down('sm')]: {
+                marginLeft: '0',
+              },
+            })}
+          >
+            <SubTasks
+              subTasks={currentTodo.slice(-1)[0].subTasks}
+              onSeeDetailTodo={handleSeeDetailTodo}
+              onAddSubTodo={handleAddSubTodo}
+              onEditSubTodo={handleEditSubTodo}
+              onDeleteSubTodo={handleDeleteSubTodo}
+              onDuplicateSubTodo={handleDuplicateSubTodo}
+              onUpdateSubTodos={handleUpdateSubTodos}
+              onToggleCompleteSubTodo={handleToggleCompleteSubTodo}
             />
-            <Stack flexGrow='1'>
-              <TodoContent
-                onEditTodo={handleEditTodoDetail}
-                todo={currentTodo.slice(-1)[0]}
+            {currentTodo.slice(-1)[0].subTasks.length === 0 && (
+              <Divider
+                sx={{
+                  backgroundColor: grey[100],
+                  opacity: 0.3,
+                  marginTop: 1.25,
+                  marginBottom: 2,
+                }}
               />
-              <SubTasks
-                subTasks={currentTodo.slice(-1)[0].subTasks}
-                onSeeDetailTodo={handleSeeDetailTodo}
-                onAddSubTodo={handleAddSubTodo}
-                onEditSubTodo={handleEditSubTodo}
-                onDeleteSubTodo={handleDeleteSubTodo}
-                onDuplicateSubTodo={handleDuplicateSubTodo}
-                onUpdateSubTodos={handleUpdateSubTodos}
-                onToggleCompleteSubTodo={handleToggleCompleteSubTodo}
-              />
-              {currentTodo.slice(-1)[0].subTasks.length === 0 && (
-                <Divider
-                  sx={{
-                    backgroundColor: grey[100],
-                    opacity: 0.3,
-                    marginTop: 1.25,
-                    marginBottom: 2,
-                  }}
-                />
-              )}
-              <TodoComment
-                isComment={isComment}
-                comments={currentTodo.slice(-1)[0].comments}
-                onAddComment={handleAddComment}
-                onEditComment={handleEditComment}
-                onDeleteComment={handleDeleteComment}
-                onToggleCommentDetail={onToggleCommentDetail}
-              />
-            </Stack>
+            )}
+            <TodoComment
+              isComment={isComment}
+              comments={currentTodo.slice(-1)[0].comments}
+              onAddComment={handleAddComment}
+              onEditComment={handleEditComment}
+              onDeleteComment={handleDeleteComment}
+              onToggleCommentDetail={onToggleCommentDetail}
+            />
           </Stack>
         </Stack>
         <Stack
-          width='30%'
+          sx={(theme) => ({
+            backgroundColor: {
+              sm: 'grey.100',
+            },
+            [theme.breakpoints.up('sm')]: {
+              width: '30%',
+            },
+            [theme.breakpoints.down('sm')]: {
+              width: '100%',
+            },
+          })}
           paddingX={2}
           paddingY={1.5}
-          sx={{
-            backgroundColor: 'grey.100',
-          }}
         >
           <Sidebar
             todo={currentTodo.slice(-1)[0]}

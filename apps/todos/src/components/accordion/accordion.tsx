@@ -5,15 +5,23 @@ import {
   Typography,
   Divider,
   Box,
+  SxProps,
 } from '@mui/material';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 interface AccordionProps {
   summary: string;
   children: React.ReactNode;
+  sx?: SxProps;
+  isDivider?: boolean;
 }
 
-const Accordion: React.FC<AccordionProps> = ({ summary, children }) => {
+const Accordion: React.FC<AccordionProps> = ({
+  summary,
+  children,
+  isDivider = true,
+  sx,
+}) => {
   return (
     <MUIAccordion
       disableGutters
@@ -22,6 +30,7 @@ const Accordion: React.FC<AccordionProps> = ({ summary, children }) => {
         ':before': {
           display: 'none',
         },
+        ...sx,
       }}
       defaultExpanded
     >
@@ -36,11 +45,13 @@ const Accordion: React.FC<AccordionProps> = ({ summary, children }) => {
           <Typography fontSize='13px' fontWeight='500'>
             {summary}
           </Typography>
-          <Divider
-            sx={{
-              transform: 'translateY(10px)',
-            }}
-          />
+          {isDivider && (
+            <Divider
+              sx={{
+                transform: 'translateY(10px)',
+              }}
+            />
+          )}
         </Box>
       </AccordionSummary>
       <AccordionDetails sx={{ paddingLeft: 2, paddingRight: 0 }}>

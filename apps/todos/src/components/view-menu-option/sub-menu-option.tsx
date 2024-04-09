@@ -13,25 +13,32 @@ import {
 import CheckIcon from '@mui/icons-material/Check';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
 import { usePopover } from '@/hooks';
-import { PriorityBy, GroupBy, SortBy } from '@/components/todo-list/types';
+import {
+  PriorityBy,
+  GroupBy,
+  SortBy,
+  OptionFilter,
+  Direction,
+} from '@/components/todo-list/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { filterSelector } from '@/redux/selectors';
 import {
   setPriorityBy,
   setGroupBy,
   setSortBy,
+  setDirection,
 } from '@/redux/slices/filterSlice';
 
 export interface SubMenu {
   id: number;
-  option: GroupBy | SortBy | PriorityBy;
+  option: GroupBy | SortBy | PriorityBy | Direction;
 }
 
 interface SubMenuOptionProps {
   idName: string;
-  icon: ReactElement<SvgIconProps>;
+  icon: ReactElement<SvgIconProps> | null;
   label: string;
-  type: 'group' | 'sort' | 'priority';
+  type: OptionFilter;
   selected: string;
   subMenu: SubMenu[];
   onChangeMenu: (idMenu: number, idSubMenu: number) => void;
@@ -47,17 +54,19 @@ const SubMenuOption: React.FC<SubMenuOptionProps> = ({
   onChangeMenu,
 }) => {
   const { id, open, anchorEl, handleClick, handleClose } = usePopover(idName);
-  const { groupBy, sortBy, priority } = useSelector(filterSelector);
+  const { groupBy, sortBy, priority, direction } = useSelector(filterSelector);
   const dispatch = useDispatch();
 
   const selectedOption = (() => {
     switch (type) {
-      case 'group':
+      case OptionFilter.GROUP:
         return groupBy;
-      case 'sort':
+      case OptionFilter.SORT:
         return sortBy;
-      case 'priority':
+      case OptionFilter.PRIORITY:
         return priority;
+      case OptionFilter.DIRECTION:
+        return direction;
       default:
         return selected;
     }
@@ -65,14 +74,17 @@ const SubMenuOption: React.FC<SubMenuOptionProps> = ({
 
   const handleSortTodo = (item: SubMenu, index: number) => {
     onChangeMenu(Number(idName), index);
-    if (type === 'group') {
+    if (type === OptionFilter.GROUP) {
       dispatch(setGroupBy(item.option as GroupBy));
     }
-    if (type === 'sort') {
+    if (type === OptionFilter.SORT) {
       dispatch(setSortBy(item.option as SortBy));
     }
-    if (type === 'priority') {
+    if (type === OptionFilter.PRIORITY) {
       dispatch(setPriorityBy(item.option as PriorityBy));
+    }
+    if (type === OptionFilter.DIRECTION) {
+      dispatch(setDirection(item.option as Direction));
     }
     handleClose();
   };

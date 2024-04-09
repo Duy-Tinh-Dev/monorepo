@@ -1,14 +1,20 @@
-import React from 'react';
-import { Container, Typography } from '@mui/material';
+import { useEffect } from 'react';
 import { Header } from '@/components/header';
+import { Container } from '@mui/material';
+import { useAuth } from '@/contexts/auth-context';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { ROUTES } from '@/constants';
 
-const AuthLayout = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => {
+const AuthLayout = () => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate(ROUTES.home);
+    }
+  }, [currentUser]);
+
   return (
     <Container maxWidth='md'>
       <Header
@@ -16,15 +22,7 @@ const AuthLayout = ({
           margin: '30px 0 50px',
         }}
       />
-      <Typography
-        fontWeight='bold'
-        fontSize='32px'
-        component='h1'
-        marginBottom={2}
-      >
-        {title}
-      </Typography>
-      {children}
+      <Outlet />
     </Container>
   );
 };

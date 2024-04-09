@@ -1,0 +1,9 @@
+{
+  "actions": {
+    "title": "Actions",
+    "view": "View",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete"
+  }
+}

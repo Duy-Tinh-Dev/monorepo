@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
-import { Avatar, Box, Button, Drawer, Stack, Typography } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Button,
+  Drawer,
+  Link,
+  Stack,
+  Typography,
+} from '@mui/material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import SearchIcon from '@mui/icons-material/Search';
 import InboxIcon from '@mui/icons-material/Inbox';
@@ -7,46 +14,36 @@ import TodayIcon from '@mui/icons-material/Today';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import ViewComfyOutlinedIcon from '@mui/icons-material/ViewComfyOutlined';
-import TableViewIcon from '@mui/icons-material/TableView';
-import GridViewIcon from '@mui/icons-material/GridView';
-import AddIcon from '@mui/icons-material/Add';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useTranslation } from '@op/i18n';
 import { addTodoApi } from 'src/api';
 import { TodoEditor } from '../todo-list/todo-editor';
 import { useAuth } from '@/contexts/auth-context';
+import { useDisclosure } from '@/hooks';
+import { Popup } from '@/components/popup';
+import { Search } from '@/components/search';
+import { ROUTES } from '@/constants';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { grey } from '@mui/material/colors';
+import SidebarProject from './sidebar-project/sidebar-project';
+import { TypeTime } from '@/@types/typeTime';
 
-interface PopupTodoEditorProps {
-  onClosePopup: () => void;
+interface SidebarProps {
+  openSidebar: boolean;
+  onCloseSidebar: () => void;
+  onOpenSidebar: () => void;
 }
 
-const PopupTodoEditor: React.FC<PopupTodoEditorProps> = ({ onClosePopup }) => {
-  return (
-    <Box
-      sx={{
-        position: 'fixed',
-        inset: 0,
-        left: '50%',
-        height: 174.5,
-        top: '20%',
-        transform: 'translateX(-50%)',
-        backgroundColor: '#fff',
-      }}
-      zIndex={99999}
-      borderRadius={2.5}
-      boxShadow={6}
-    >
-      <TodoEditor onCancelEdit={onClosePopup} onAddTodo={addTodoApi} />
-    </Box>
-  );
-};
-
-const Sidebar = () => {
+const Sidebar: React.FC<SidebarProps> = ({
+  openSidebar,
+  onCloseSidebar,
+  onOpenSidebar,
+}) => {
   const { t } = useTranslation(['common', 'sidebar', 'auth']);
   const { currentUser, signOut } = useAuth();
-  const [active, setActive] = useState(-1);
-  const [isOpen, setIsOpen] = useState(false);
-  const [openSidebar, setOpenSidebar] = useState(true);
+  const location = useLocation();
+  const todoEditorDisclosure = useDisclosure({});
+  const searchDisclosure = useDisclosure({});
 
   const color = 'secondary';
   const sx = {
@@ -58,61 +55,43 @@ const Sidebar = () => {
   const menuSidebar = [
     {
       id: 1,
-      title: t('sidebar:search'),
-      icon: <SearchIcon />,
-    },
-    {
-      id: 2,
       title: t('sidebar:inbox'),
+      href: ROUTES.inbox,
       icon: <InboxIcon />,
     },
     {
-      id: 3,
+      id: 2,
       title: t('sidebar:today'),
+      href: ROUTES.home,
       icon: <TodayIcon />,
-    },
-    {
-      id: 4,
-      title: t('sidebar:upcoming'),
-      icon: <TableViewIcon />,
-    },
-    {
-      id: 5,
-      title: t('sidebar:filterLabel'),
-      icon: <GridViewIcon />,
-    },
+    }
   ];
 
-  const handleClosePopup = () => {
-    setIsOpen(false);
-  };
-
-  const toggleDrawer = (newOpen: boolean) => () => {
-    setOpenSidebar(newOpen);
-  };
-
   return (
-    <Box
-      sx={{
-        minWidth: openSidebar ? 420 : 200,
-        transition: 'all 0.3s ease',
-        padding: '12px 12px 0',
-      }}
-    >
+    <>
       <Drawer
         open={openSidebar}
-        onClose={toggleDrawer(false)}
-        variant='persistent'
+        onClose={onCloseSidebar}
         transitionDuration={300}
+        sx={(theme) => ({
+          [theme.breakpoints.up('md')]: { zIndex: '-1' },
+          [theme.breakpoints.down('md')]: { zIndex: '1' },
+          '& > .MuiBackdrop-root': {
+            display: {
+              md: 'none',
+            },
+          },
+        })}
       >
         <Box
-          sx={{
+          sx={(theme) => ({
             position: 'relative',
-            width: 420,
             height: '100vh',
             padding: '12px 12px 0',
             backgroundColor: '#fcfaf8',
-          }}
+            [theme.breakpoints.up('md')]: { width: '420px' },
+            [theme.breakpoints.down('md')]: { width: '300px' },
+          })}
         >
           <Stack
             direction='row'
@@ -145,7 +124,7 @@ const Sidebar = () => {
               <Button color={color} sx={sx}>
                 <NotificationsOutlinedIcon fontSize='small' />
               </Button>
-              <Button color={color} sx={sx} onClick={toggleDrawer(false)}>
+              <Button color={color} sx={sx} onClick={onCloseSidebar}>
                 <ViewComfyOutlinedIcon fontSize='small' />
               </Button>
             </Stack>
@@ -158,9 +137,7 @@ const Sidebar = () => {
               width: '100%',
               paddingLeft: '2px',
             }}
-            onClick={() => {
-              setIsOpen(true);
-            }}
+            onClick={todoEditorDisclosure.onOpen}
           >
             <AddCircleIcon color='primary' />
             <Typography
@@ -172,49 +149,58 @@ const Sidebar = () => {
               {t('common:actions.addTask')}
             </Typography>
           </Button>
+          <Button
+            disableRipple
+            color={color}
+            sx={{
+              justifyContent: 'flex-start',
+              width: '100%',
+              paddingLeft: '2px',
+            }}
+            onClick={searchDisclosure.onOpen}
+          >
+            <SearchIcon />
+            <Typography fontWeight={400} fontSize='14px' marginLeft={0.75}>
+              {t('sidebar:search')}
+            </Typography>
+          </Button>
           {menuSidebar.map((item) => (
-            <Button
+            <Link
               key={item.id}
-              disableRipple
-              color={active === item.id ? 'primary' : 'secondary'}
+              to={item.href}
+              component={RouterLink}
+              underline='none'
               sx={{
-                justifyContent: 'flex-start',
+                display: 'flex',
                 width: '100%',
-                paddingLeft: '2px',
-                backgroundColor: active === item.id ? '#ffefe5' : '',
+                paddingX: '2px',
+                paddingY: '8px',
+                backgroundColor:
+                  location.pathname === item.href ? '#ffefe5' : '',
+                color:
+                  location.pathname === item.href
+                    ? 'primary.main'
+                    : 'secondary.main',
+                '&:hover': {
+                  backgroundColor:
+                    location.pathname === item.href ? '' : grey[100],
+                },
               }}
-              onClick={() => setActive(item.id)}
             >
               {item.icon}
-              <Typography fontWeight={400} fontSize='14px' marginLeft={0.75}>
+              <Typography
+                fontWeight={400}
+                fontSize='14px'
+                marginLeft={0.75}
+                sx={{
+                  marginLeft: '6px',
+                }}
+              >
                 {item.title}
               </Typography>
-            </Button>
+            </Link>
           ))}
-          <Button
-            startIcon={<AddIcon />}
-            color='secondary'
-            sx={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'flex-start',
-            }}
-          >
-            <Typography fontWeight={500} fontSize='14px' marginRight={1}>
-              {t('sidebar:addTeam')}
-            </Typography>
-            <Box
-              sx={{
-                borderRadius: '6px',
-                backgroundColor: '#e6f3e9',
-                minWidth: '24px',
-                padding: '4px 6px',
-                fontSize: '10px',
-              }}
-            >
-              {t('sidebar:new')}
-            </Box>
-          </Button>
+          <SidebarProject />
           <Button
             startIcon={<LogoutIcon />}
             variant='outlined'
@@ -231,11 +217,27 @@ const Sidebar = () => {
           </Button>
         </Box>
       </Drawer>
-      <Button onClick={toggleDrawer(true)} sx={sx} color={color}>
-        <ViewComfyOutlinedIcon fontSize='small' />
-      </Button>
-      {isOpen && <PopupTodoEditor onClosePopup={handleClosePopup} />}
-    </Box>
+      {!openSidebar && (
+        <Button onClick={onOpenSidebar} sx={sx} color={color}>
+          <ViewComfyOutlinedIcon fontSize='small' />
+        </Button>
+      )}
+      {todoEditorDisclosure.isOpen && (
+        <Popup>
+          <TodoEditor
+            onAddTodo={addTodoApi}
+            onCancelAdd={todoEditorDisclosure.onClose}
+            defaultTime={TypeTime.OVERDUE}
+          />
+        </Popup>
+      )}
+      {searchDisclosure.isOpen && (
+        <Search
+          openSearch={searchDisclosure.isOpen}
+          onCloseSearch={searchDisclosure.onClose}
+        />
+      )}
+    </>
   );
 };
 

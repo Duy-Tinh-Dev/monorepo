@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Divider,
   Grid,
@@ -22,17 +23,19 @@ import CircularProgress from '@mui/material/CircularProgress';
 import UserAvatar from '@/assets/user-avatar.png';
 import { useState } from 'react';
 import { useTranslation } from '@op/i18n';
-import { AuthLayout } from '@/layouts/auth-layout';
 import { Info } from '@/components/info';
 import { SignInMethod } from '@/components/sign-in-method';
 import { useAuth } from '@/contexts/auth-context';
 import { useValidationSchema } from '@/hooks';
 import { auth } from '@/config/firebase';
 import { FormData } from '@/components/todo-list/types';
-
+import { ROUTES } from '@/constants';
+import { useMediaQuery, useTheme } from '@mui/material';
 const SignUp = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { t } = useTranslation(['auth']);
-  const { currentUser, setCurrentUser } = useAuth();
+  const { setCurrentUser } = useAuth();
   const { validationSchema } = useValidationSchema();
   const navigate = useNavigate();
 
@@ -55,7 +58,6 @@ const SignUp = () => {
   const onSubmit = async ({ email, password }: FormData) => {
     try {
       const res = await createUserWithEmailAndPassword(auth, email, password);
-      setCurrentUser(res.user);
       const displayName = email.split('@')[0];
 
       if (auth.currentUser) {
@@ -63,9 +65,9 @@ const SignUp = () => {
           displayName,
           photoURL: UserAvatar,
         });
+        setCurrentUser(res.user);
+        navigate(ROUTES.home);
       }
-
-      navigate('/');
     } catch (error) {
       const errorMessage = t('validate.email.isExist');
       setError('email', { type: 'custom', message: errorMessage });
@@ -79,122 +81,159 @@ const SignUp = () => {
 
   const color = 'secondary';
 
-  if (currentUser) {
-    navigate('/');
-  }
-
   return (
-    <AuthLayout title={t('actions.signup')}>
-      <Stack direction='row' gap={6} alignItems='center'>
-        <Stack gap={2} width={400}>
-          <SignInMethod />
-          <Divider />
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-            }}
-          >
-            <Controller
-              name='email'
-              control={control}
-              defaultValue=''
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label={t('formData.email')}
-                  variant='outlined'
-                  error={!!errors.email}
-                  color={color}
-                  helperText={errors.email ? String(errors.email.message) : ''}
-                  fullWidth
-                  margin='none'
-                />
-              )}
-            />
-            <Controller
-              name='password'
-              control={control}
-              defaultValue=''
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label={t('formData.password')}
-                  type={showPassword ? 'text' : 'password'}
-                  variant='outlined'
-                  error={!!errors.password}
-                  color={color}
-                  helperText={
-                    errors.password ? String(errors.password.message) : ''
-                  }
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        <IconButton
-                          onClick={handleTogglePassword}
-                          edge='end'
-                          color={color}
-                        >
-                          {showPassword ? (
-                            <VisibilityIcon />
-                          ) : (
-                            <VisibilityOffIcon />
-                          )}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  fullWidth
-                  margin='none'
-                />
-              )}
-            />
-            <Button
-              type='submit'
-              variant='contained'
-              sx={{
-                '&.MuiButtonBase-root': {
-                  height: '48px',
-                  fontWeight: 500,
-                  fontSize: '16px',
-                  borderRadius: 2.5,
+    <Stack
+      gap={6}
+      alignItems='center'
+      sx={{
+        flexDirection: {
+          xs: 'column',
+          md: 'row',
+        },
+      }}
+    >
+      <Stack
+        gap={2}
+        sx={{
+          width: {
+            xs: '100%',
+            sm: 500,
+          },
+        }}
+      >
+        <Typography
+          fontWeight='bold'
+          component='h1'
+          sx={{
+            fontSize: {
+              xs: '24px',
+              md: '32px',
+            },
+          }}
+        >
+          {t('actions.signup')}
+        </Typography>
+        <SignInMethod />
+        <Divider />
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          <Controller
+            name='email'
+            control={control}
+            defaultValue=''
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label={t('formData.email')}
+                variant='outlined'
+                error={!!errors.email}
+                color={color}
+                helperText={errors.email ? String(errors.email.message) : ''}
+                fullWidth
+                margin='none'
+                size={isMobile ? 'small' : 'medium'}
+              />
+            )}
+          />
+          <Controller
+            name='password'
+            control={control}
+            defaultValue=''
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label={t('formData.password')}
+                type={showPassword ? 'text' : 'password'}
+                variant='outlined'
+                error={!!errors.password}
+                color={color}
+                helperText={
+                  errors.password ? String(errors.password.message) : ''
+                }
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position='end'>
+                      <IconButton
+                        onClick={handleTogglePassword}
+                        edge='end'
+                        color={color}
+                      >
+                        {showPassword ? (
+                          <VisibilityIcon />
+                        ) : (
+                          <VisibilityOffIcon />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                fullWidth
+                margin='none'
+                size={isMobile ? 'small' : 'medium'}
+              />
+            )}
+          />
+          <Button
+            type='submit'
+            variant='contained'
+            sx={{
+              '&.MuiButtonBase-root': {
+                fontWeight: 500,
+                fontSize: '16px',
+                borderRadius: 2.5,
+                height: {
+                  xs: 40,
+                  sm: 56,
                 },
-              }}
-              disabled={!isValid}
-            >
-              {isSubmitting ? (
-                <CircularProgress color='info' />
-              ) : (
-                t('signupWithEmail')
-              )}
-            </Button>
-          </form>
-          <Typography fontSize='13px' variant='body2' sx={styleSpan}>
-            {t('accountSecurity.forgotPassword')}
-          </Typography>
-          <Typography fontSize='13px' variant='body2'>
-            {t('accountSecurity.continueWith')}{' '}
-            <span style={styleSpan}>{t('accountSecurity.termsOfService')}</span>{' '}
-            {t('accountSecurity.and')}{' '}
-            <span style={{ textDecoration: 'underline', cursor: 'pointer' }}>
-              {t('accountSecurity.privacyPolicy.')}
-            </span>
-          </Typography>
-          <Divider />
-          <Typography
-            textAlign='center'
-            fontSize='13px'
-            variant='body2'
-            marginBottom={3}
+              },
+            }}
+            disabled={!isValid}
           >
-            {t('accountSecurity.alreadySignedUp')}{' '}
-            <span onClick={() => navigate('/auth/login')} style={styleSpan}>
-              {t('accountSecurity.goToLogin')}
-            </span>
-          </Typography>
-        </Stack>
+            {isSubmitting ? (
+              <CircularProgress color='info' />
+            ) : (
+              t('signupWithEmail')
+            )}
+          </Button>
+        </form>
+        <Typography fontSize='13px' variant='body2' sx={styleSpan}>
+          {t('accountSecurity.forgotPassword')}
+        </Typography>
+        <Typography fontSize='13px' variant='body2' textAlign='justify'>
+          {t('accountSecurity.continueWith')}{' '}
+          <span style={styleSpan}>{t('accountSecurity.termsOfService')}</span>{' '}
+          {t('accountSecurity.and')}{' '}
+          <span style={{ textDecoration: 'underline', cursor: 'pointer' }}>
+            {t('accountSecurity.privacyPolicy.')}
+          </span>
+        </Typography>
+        <Divider />
+        <Typography
+          textAlign='center'
+          fontSize='13px'
+          variant='body2'
+          marginBottom={3}
+        >
+          {t('accountSecurity.alreadySignedUp')}{' '}
+          <span onClick={() => navigate(ROUTES.signin)} style={styleSpan}>
+            {t('accountSecurity.goToLogin')}
+          </span>
+        </Typography>
+      </Stack>
+      <Box
+        sx={{
+          display: {
+            xs: 'none',
+            md: 'block',
+          },
+        }}
+      >
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <Info
@@ -225,8 +264,8 @@ const SignUp = () => {
             />
           </Grid>
         </Grid>
-      </Stack>
-    </AuthLayout>
+      </Box>
+    </Stack>
   );
 };
 

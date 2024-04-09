@@ -1,42 +1,43 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { getDataFromLocalStorage, saveDataToLocalStorage } from '@/utils/localStorageUtil';
 import { SignOutUser, auth } from '@/config/firebase';
+import { ROUTES } from '@/constants';
+import { Loading } from '@/components/loading';
 
 type UserContextType = {
   currentUser: User | null;
   setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
+  loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   signOut: () => void;
 };
 
 const AuthContext = createContext<UserContextType>({} as UserContextType);
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(
-    getDataFromLocalStorage('user')
-  );
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const signOut = () => {
     SignOutUser();
     setCurrentUser(null);
-    navigate('/auth/login');
+    navigate(ROUTES.signin);
   };
 
   useEffect(() => {
     onAuthStateChanged(auth, (user: User | null) => {
       setCurrentUser(user);
+      setLoading(false);
     });
   }, []);
 
-  useEffect(() => {
-    saveDataToLocalStorage('user', currentUser);
-  }, [currentUser]);
-
   return (
-    <AuthContext.Provider value={{ currentUser, setCurrentUser, signOut }}>
-      {children}
+    <AuthContext.Provider
+      value={{ currentUser, setCurrentUser, loading, setLoading, signOut }}
+    >
+      {loading ? <Loading /> : children}
     </AuthContext.Provider>
   );
 };

@@ -11,8 +11,8 @@ import AuthProvider from './contexts/auth-context.tsx';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <Provider store={store}>
-    <CssBaseline />
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <BrowserRouter>
         <AuthProvider>
           <App />

@@ -1,8 +1,10 @@
 import {
+  Direction,
   FilterTodoList,
   GroupBy,
   PriorityBy,
   SortBy,
+  View,
 } from '@/components/todo-list/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
@@ -10,6 +12,8 @@ const initialState: FilterTodoList = {
   groupBy: GroupBy.DEFAULT,
   sortBy: SortBy.DEFAULT,
   priority: PriorityBy.DEFAULT,
+  direction: Direction.ASCENDING,
+  view: View.LIST,
 };
 
 const filterSlice = createSlice({
@@ -28,9 +32,21 @@ const filterSlice = createSlice({
     setPriorityBy: (state, action: PayloadAction<PriorityBy>) => {
       state.priority = action.payload;
     },
+    setDirection: (state, action: PayloadAction<Direction>) => {
+      state.direction = action.payload;
+    },
+    setView: (state, action: PayloadAction<View>) => {
+      state.view = action.payload;
+    },
   },
 });
 
-export const { resetFilter, setGroupBy, setSortBy, setPriorityBy } =
-  filterSlice.actions;
+export const {
+  resetFilter,
+  setGroupBy,
+  setSortBy,
+  setPriorityBy,
+  setDirection,
+  setView,
+} = filterSlice.actions;
 export default filterSlice.reducer;

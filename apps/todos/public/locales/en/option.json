@@ -2,7 +2,8 @@
   "groupBy": {
     "heading": "Grouping",
     "default": "None (default)",
-    "priority": "Priority"
+    "priority": "Priority",
+    "date": "Date"
   },
   "sortBy": {
     "heading": "Sort by",
@@ -11,14 +12,19 @@
     "name": "Name",
     "priority": "Priority"
   },
+  "direction": {
+    "heading": "Direction",
+    "ascending": "Ascending (default)",
+    "descending": "Descending"
+  },
   "filterBy": {
     "title": "Filter by",
     "priority": {
       "heading": "Priority",
       "default": "All (default)",
-      "p1": "P1",
-      "p2": "P2",
-      "p3": "P3"
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
     }
   }
 }

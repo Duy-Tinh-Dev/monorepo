@@ -34,12 +34,8 @@ export const deleteTodoApi = async (id: number) => {
 };
 
 export const duplicateTodoApi = async (todo: Todo) => {
-  const newTodo = {
+  await setDoc(doc(db, 'todos', String(todo.id)), {
     ...todo,
-    id: Date.now(),
-  };
-  await setDoc(doc(db, 'todos', String(newTodo.id)), {
-    ...newTodo,
   });
 };
 

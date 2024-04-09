@@ -32,6 +32,22 @@ const theme = createTheme({
         },
       },
     },
+    MuiCssBaseline: {
+      styleOverrides: {
+        scrollbarColor: 'rgba(155, 155, 155, 0.5) rgba(255, 255, 255, 0.1)',
+        scrollbarWidth: 'thin',
+        '&::-webkit-scrollbar': {
+          width: '8px',
+        },
+        '&::-webkit-scrollbar-track': {
+          boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+          webkitBoxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: 'rgba(155, 155, 155, 0.5)',
+        },
+      },
+    },
   },
 });
 

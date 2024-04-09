@@ -10,12 +10,15 @@
     "duplicate": "Duplicate",
     "confirmDelete": "Are you sure you want to delete this todo item?",
     "confirmDeleteComment": "Are you sure you want to delete this comment?",
+    "confirmDeleteProject": "Are you sure you want to delete this project?",
     "save": "Save",
     "addTask": "Add Task",
     "addSubTask": "Add sub-task",
     "cancel": "Cancel",
     "reset": "Reset all",
-    "copyText": "Copy Text"
+    "copyText": "Copy Text",
+    "addProject": "Add Project",
+    "color": "Color"
   },
   "views": {
     "list": "List",
@@ -33,11 +36,15 @@
     "title": "Comment"
   },
   "date": {
-    "today": "Today"
+    "today": "Today",
+    "inbox": "Inbox"
   },
   "task": {
     "title": "Task",
     "noTask": "You have no task for today",
     "noTaskSort": "No tasks match the current sorting options."
+  },
+  "time": {
+    "title": "Time"
   }
 }

@@ -19,14 +19,15 @@ import {
 } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { QuickTime } from '../types';
 import {
   addTimeToDate,
-  getTimeQuick as getDayQuick,
   getDayQuickWithTime,
   getEndOfDayWithTime,
+  getDayQuick,
 } from '@/utils';
 import { useTranslation } from '@op/i18n';
 import { usePopover } from '@/hooks';
@@ -43,37 +44,39 @@ const TodoDate: React.FC<TodoDateProps> = ({
   setExpireTime,
   onClose,
 }) => {
-  const [valueTime, setValueTime] = useState<dayjs.Dayjs | null>();
+  const { t } = useTranslation(['common']);
+  const [valueTime, setValueTime] = useState<dayjs.Dayjs | null>(
+    expireTime ? dayjs(expireTime) : null
+  );
   const { id, open, anchorEl, handleClick, handleClose } =
     usePopover('todo-time');
-
-  const { t } = useTranslation(['common']);
 
   const handlePickTime = (time: dayjs.Dayjs | null) => {
     setValueTime(time);
   };
 
+  const handleSetExpireTime = (time: string) => {
+    setExpireTime(time);
+    onClose();
+  };
+
   const handlePickQuickDay = (time: QuickTime) => {
     if (valueTime) {
       const valueTimeQuick = getDayQuickWithTime(time, valueTime);
-      setExpireTime(valueTimeQuick.format());
-      onClose();
+      handleSetExpireTime(valueTimeQuick.format());
     } else {
       const valueTimeQuick = getDayQuick(time);
-      setExpireTime(valueTimeQuick.format());
-      onClose();
+      handleSetExpireTime(valueTimeQuick.format());
     }
   };
 
   const handlePickDay = (time: dayjs.Dayjs) => {
     if (valueTime) {
       const valueDay = addTimeToDate(valueTime, dayjs(time));
-      setExpireTime(valueDay.format());
-      onClose();
+      handleSetExpireTime(valueDay.format());
     } else {
       const valueDay = getEndOfDayWithTime(time);
-      setExpireTime(valueDay);
-      onClose();
+      handleSetExpireTime(valueDay);
     }
   };
 
@@ -82,8 +85,18 @@ const TodoDate: React.FC<TodoDateProps> = ({
       const valueDay = addTimeToDate(valueTime, dayjs(expireTime));
 
       setExpireTime(valueDay.format());
+    } else {
+      setExpireTime(dayjs().format());
     }
     handleClose();
+  };
+
+  const getLabelTime = () => {
+    if (valueTime) {
+      return valueTime.format('H:mm A');
+    }
+
+    return t('time.title');
   };
 
   return (
@@ -118,7 +131,7 @@ const TodoDate: React.FC<TodoDateProps> = ({
       <Box padding={2}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DateCalendar
-            defaultValue={expireTime ? dayjs(expireTime) : dayjs()}
+            value={expireTime ? dayjs(expireTime) : dayjs()}
             onChange={handlePickDay}
             minDate={dayjs()}
             sx={{
@@ -140,6 +153,27 @@ const TodoDate: React.FC<TodoDateProps> = ({
         <Button
           color='secondary'
           startIcon={<AccessTimeIcon fontSize='small' />}
+          endIcon={
+            valueTime && (
+              <Button
+                sx={{
+                  padding: 0,
+                  minWidth: 0,
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePickTime(null);
+                }}
+              >
+                <CloseOutlinedIcon
+                  sx={{
+                    color: grey[400],
+                  }}
+                  fontSize='small'
+                />
+              </Button>
+            )
+          }
           onClick={handleClick}
           sx={{
             width: '100%',
@@ -149,7 +183,7 @@ const TodoDate: React.FC<TodoDateProps> = ({
             rounded: 1,
           }}
         >
-          Time
+          {getLabelTime()}
         </Button>
         <Popover
           id={id}
@@ -173,11 +207,10 @@ const TodoDate: React.FC<TodoDateProps> = ({
               padding: '16px 16px 0 16px',
             }}
           >
-            <Typography>Time</Typography>
+            <Typography>{t('time.title')}</Typography>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <TimePicker
-                value={valueTime}
-                defaultValue={expireTime ? dayjs(expireTime) : dayjs()}
+                value={valueTime ?? dayjs()}
                 minutesStep={5}
                 minTime={dayjs()}
                 onChange={handlePickTime}

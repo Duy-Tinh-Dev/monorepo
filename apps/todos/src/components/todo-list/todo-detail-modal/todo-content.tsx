@@ -4,6 +4,9 @@ import { grey } from '@mui/material/colors';
 import { useDisclosure } from '@/hooks';
 import { useTranslation } from '@op/i18n';
 import { Todo } from '../types';
+import { Box } from '@mui/system';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
 
 interface TodoContentProps {
   todo: Todo;
@@ -32,6 +35,14 @@ const TodoContent: React.FC<TodoContentProps> = ({ todo, onEditTodo }) => {
     setDescriptionTodo(event.target.value);
   };
 
+  const handleToggleComplete = () => {
+    const newTodo = {
+      ...todo,
+      isComplete: !todo.isComplete,
+    };
+    onEditTodo(newTodo);
+  };
+
   const handleEditTodo = () => {
     const name = nameTodo.trim();
     const description = descriptionTodo.trim();
@@ -47,76 +58,108 @@ const TodoContent: React.FC<TodoContentProps> = ({ todo, onEditTodo }) => {
   };
 
   return (
-    <>
-      <Stack
-        paddingX={1.25}
-        borderRadius={2.25}
-        border={1}
-        marginBottom={2}
-        paddingBottom={isOpen ? 1.25 : 0}
-        borderColor={isOpen ? grey[300] : 'transparent'}
+    <Stack flexDirection='row'>
+      <Button
+        sx={{
+          minWidth: 2.5,
+          borderRadius: '50%',
+          alignSelf: 'flex-start',
+          '&:hover': {
+            backgroundColor: 'transparent',
+          },
+          '&:hover .MuiSvgIcon-root': {
+            display: 'block',
+          },
+          color: todo.priority.color,
+        }}
+        onClick={handleToggleComplete}
       >
-        <Input
-          placeholder='Task name'
-          fullWidth
-          disableUnderline
+        <RadioButtonUncheckedIcon />
+        <CheckOutlinedIcon
           sx={{
-            fontWeight: '500',
-            fontSize: '20px',
+            display: todo.isComplete ? 'block' : 'none',
+            fontSize: '16px',
+            position: 'absolute',
           }}
-          onFocus={onOpen}
-          value={nameTodo}
-          onChange={handleChangeNameTodo}
         />
-        <Input
-          placeholder='Description'
-          fullWidth
-          disableUnderline
-          sx={{
-            fontSize: '14px',
-          }}
-          onFocus={onOpen}
-          value={descriptionTodo}
-          onChange={handleChangeDescriptionTodo}
-        />
-      </Stack>
-      {isOpen && (
+      </Button>
+      <Box>
         <Stack
-          paddingY={1}
-          direction='row'
-          justifyContent='right'
-          alignItems='center'
-          gap={1}
+          borderRadius={2.25}
+          border={1}
+          paddingBottom={isOpen ? 1.25 : 0}
+          borderColor={isOpen ? grey[300] : 'transparent'}
+          sx={(theme) => ({
+            [theme.breakpoints.up('sm')]: {
+              marginBottom: '8px',
+            },
+            [theme.breakpoints.down('sm')]: {
+              marginBottom: '0',
+            },
+          })}
         >
-          <Button
+          <Input
+            placeholder='Task name'
+            fullWidth
+            disableUnderline
             sx={{
-              paddingX: 1.5,
-              color: grey[700],
-              backgroundColor: grey[100],
-              boxShadow: 'none',
-              '&:hover': {
-                backgroundColor: grey[200],
-                boxShadow: 'none',
-              },
+              fontWeight: '500',
+              fontSize: '20px',
             }}
-            variant='contained'
-            onClick={onClose}
-          >
-            {t('actions.cancel')}
-          </Button>
-          <Button
+            onFocus={onOpen}
+            value={nameTodo}
+            onChange={handleChangeNameTodo}
+          />
+          <Input
+            placeholder='Description'
+            fullWidth
+            disableUnderline
             sx={{
-              paddingX: 1.5,
-              boxShadow: 'none',
+              fontSize: '14px',
             }}
-            variant='contained'
-            onClick={handleEditTodo}
-          >
-            {t('actions.save')}
-          </Button>
+            onFocus={onOpen}
+            value={descriptionTodo}
+            onChange={handleChangeDescriptionTodo}
+          />
         </Stack>
-      )}
-    </>
+        {isOpen && (
+          <Stack
+            paddingY={1}
+            direction='row'
+            justifyContent='right'
+            alignItems='center'
+            gap={1}
+          >
+            <Button
+              sx={{
+                paddingX: 1.5,
+                color: grey[700],
+                backgroundColor: grey[100],
+                boxShadow: 'none',
+                '&:hover': {
+                  backgroundColor: grey[200],
+                  boxShadow: 'none',
+                },
+              }}
+              variant='contained'
+              onClick={onClose}
+            >
+              {t('actions.cancel')}
+            </Button>
+            <Button
+              sx={{
+                paddingX: 1.5,
+                boxShadow: 'none',
+              }}
+              variant='contained'
+              onClick={handleEditTodo}
+            >
+              {t('actions.save')}
+            </Button>
+          </Stack>
+        )}
+      </Box>
+    </Stack>
   );
 };
 

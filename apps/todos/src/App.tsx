@@ -5,16 +5,23 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import '@fontsource/material-icons';
 import { Route, Routes } from 'react-router-dom';
-import { HomePage } from './pages/home';
-import { SignIn } from './pages/signin';
-import { SignUp } from './pages/signup';
+import { AuthLayout } from './layouts/auth-layout';
+import { DefaultLayout } from './layouts/default-layout';
+import { privateRoutes, publicRoutes } from './routes';
 
 const App: React.FC = () => {
   return (
     <Routes>
-      <Route path='/' element={<HomePage />} />
-      <Route path='/auth/login' element={<SignIn />} />
-      <Route path='/auth/signup' element={<SignUp />} />
+      <Route element={<DefaultLayout />}>
+        {privateRoutes.map((route) => (
+          <Route key={route.key} path={route.path} element={route.element} />
+        ))}
+      </Route>
+      <Route element={<AuthLayout />}>
+        {publicRoutes.map((route) => (
+          <Route key={route.key} path={route.path} element={route.element} />
+        ))}
+      </Route>
     </Routes>
   );
 };

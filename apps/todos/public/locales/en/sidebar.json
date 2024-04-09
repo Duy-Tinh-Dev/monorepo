@@ -2,8 +2,6 @@
   "search": "Search",
   "inbox": "Inbox",
   "today": "Today",
-  "upcoming": "Upcoming",
-  "filterLabel": "Filters & Label",
-  "addTeam": "Add a team",
-  "new": "NEW"
+  "new": "NEW",
+  "myProjects": "My Projects"
 }

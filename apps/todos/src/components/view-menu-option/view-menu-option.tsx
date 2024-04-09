@@ -7,9 +7,10 @@ import { useTranslation } from '@op/i18n';
 import { filterSelector } from '@/redux/selectors';
 import { useSelector } from 'react-redux';
 import { GroupBy, PriorityBy, SortBy } from '@/components/todo-list/types';
+import { Theme } from '@mui/system';
 
 interface ViewMenuOptionProps {
-  sx?: SxProps;
+  sx?: SxProps<Theme>;
 }
 
 const ViewMenuOption: React.FC<ViewMenuOptionProps> = ({ sx }) => {

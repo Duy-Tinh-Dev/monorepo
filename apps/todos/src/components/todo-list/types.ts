@@ -19,9 +19,10 @@ export interface Comment {
 }
 
 export enum PriorityLevels {
-  P1 = 'high',
-  P2 = 'medium',
-  P3 = 'low',
+  High = 'high',
+  Medium = 'medium',
+  Low = 'low',
+  All = 'all',
 }
 
 export interface PriorityItem {
@@ -37,6 +38,7 @@ export enum Priority {
 export enum GroupBy {
   DEFAULT = 'None (default)',
   PRIORITY = Priority.DEFAULT,
+  DATE = 'Date',
 }
 
 export enum SortBy {
@@ -45,11 +47,23 @@ export enum SortBy {
   NAME = 'Name',
 }
 
+export enum Direction {
+  ASCENDING = 'Ascending (default)',
+  DESCENDING = 'Descending',
+}
+
 export enum PriorityBy {
   DEFAULT = 'All (default)',
-  P1 = 'P1',
-  P2 = 'P2',
-  P3 = 'P3',
+  High = 'High',
+  Medium = 'Medium',
+  Low = 'Low',
+}
+
+export enum OptionFilter {
+  GROUP,
+  SORT,
+  PRIORITY,
+  DIRECTION,
 }
 
 export type TypeInput = 'text' | 'password';
@@ -58,6 +72,8 @@ export interface FilterTodoList {
   groupBy: GroupBy;
   sortBy: SortBy;
   priority: PriorityBy;
+  direction: Direction;
+  view: View;
 }
 
 export interface FormData {
@@ -70,4 +86,25 @@ export enum QuickTime {
   LATER_THIS_WEEK = 'later_this_week',
   THIS_WEEKEND = 'this_weekend',
   NEXT_WEEK = 'next_week',
+}
+
+export enum View {
+  LIST,
+  BOARD,
+}
+
+export enum TypeSearchTodo {
+  HISTORY,
+  CURRENT,
+}
+
+export interface SearchTodo {
+  listIdTodoSearchHistory: number[];
+  listIdTodoSearchCurrent: number[];
+}
+
+export interface ToggleDetail {
+  todo: Todo;
+  index?: number;
+  isComment?: boolean;
 }

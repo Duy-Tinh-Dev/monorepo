@@ -1,10 +1,28 @@
 import { editTodoApi } from '@/api/todo';
 import { BaseTodo, Comment, Todo } from '../types';
+import { Project } from '@/components/sidebar/sidebar-project/types';
+import { editProjectApi } from '@/api';
+
+const handleUpdateData = (listTodo: Todo[], project?: Project) => {
+  if (project) {
+    const newProject = {
+      ...project,
+      listTodo: listTodo,
+    };
+
+    editProjectApi(newProject);
+  } else {
+    for (const todo of listTodo) {
+      editTodoApi(todo);
+    }
+  }
+};
 
 export const toggleCompleteSubTodo = (
   idTodo: number,
   idSubTodo: number,
-  listTodo: Todo[]
+  listTodo: Todo[],
+  project?: Project
 ) => {
   const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
     if (todoItem.id === idTodo) {
@@ -30,12 +48,15 @@ export const toggleCompleteSubTodo = (
     return todoItem;
   });
 
-  for (const todo of updatedListTodo) {
-    editTodoApi(todo);
-  }
+  handleUpdateData(updatedListTodo, project);
 };
 
-export const addSubTodo = (idTodo: number, subTodo: Todo, listTodo: Todo[]) => {
+export const addSubTodo = (
+  idTodo: number,
+  subTodo: Todo,
+  listTodo: Todo[],
+  project?: Project
+) => {
   const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
     if (todoItem.id === idTodo) {
       return {
@@ -52,16 +73,15 @@ export const addSubTodo = (idTodo: number, subTodo: Todo, listTodo: Todo[]) => {
     return todoItem;
   });
 
-  for (const todo of updatedListTodo) {
-    editTodoApi(todo);
-  }
+  handleUpdateData(updatedListTodo, project);
 };
 
 export const editSubTodo = (
   id: number,
   idSubTodo: number,
   todo: BaseTodo,
-  listTodo: Todo[]
+  listTodo: Todo[],
+  project?: Project
 ) => {
   const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
     if (todoItem.id === id) {
@@ -89,15 +109,14 @@ export const editSubTodo = (
     return todoItem;
   });
 
-  for (const todo of updatedListTodo) {
-    editTodoApi(todo);
-  }
+  handleUpdateData(updatedListTodo, project);
 };
 
 export const deleteSubTodo = (
   idTodo: number,
   idSubTodo: number,
-  listTodo: Todo[]
+  listTodo: Todo[],
+  project?: Project
 ) => {
   const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
     if (todoItem.id === idTodo) {
@@ -116,15 +135,15 @@ export const deleteSubTodo = (
     }
     return todoItem;
   });
-  for (const todo of updatedListTodo) {
-    editTodoApi(todo);
-  }
+
+  handleUpdateData(updatedListTodo, project);
 };
 
 export const duplicateSubTodo = (
   idTodo: number,
   subTodo: Todo,
-  listTodo: Todo[]
+  listTodo: Todo[],
+  project?: Project
 ) => {
   const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
     if (todoItem.id === idTodo) {
@@ -141,15 +160,15 @@ export const duplicateSubTodo = (
     }
     return todoItem;
   });
-  for (const todo of updatedListTodo) {
-    editTodoApi(todo);
-  }
+
+  handleUpdateData(updatedListTodo, project);
 };
 
 export const editTodoDetail = (
   idTodo: number,
   todo: BaseTodo,
-  listTodo: Todo[]
+  listTodo: Todo[],
+  project?: Project
 ) => {
   const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
     if (todoItem.id === idTodo) {
@@ -166,15 +185,15 @@ export const editTodoDetail = (
     }
     return todoItem;
   });
-  for (const todo of updatedListTodo) {
-    editTodoApi(todo);
-  }
+
+  handleUpdateData(updatedListTodo, project);
 };
 
 export const addComment = (
   idTodo: number,
   comment: Comment,
-  listTodo: Todo[]
+  listTodo: Todo[],
+  project?: Project
 ) => {
   const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
     if (todoItem.id === idTodo) {
@@ -192,15 +211,14 @@ export const addComment = (
     return todoItem;
   });
 
-  for (const todo of updatedListTodo) {
-    editTodoApi(todo);
-  }
+  handleUpdateData(updatedListTodo, project);
 };
 
 export const editComment = (
   idTodo: number,
   newComment: Comment,
-  listTodo: Todo[]
+  listTodo: Todo[],
+  project?: Project
 ) => {
   const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
     if (todoItem.id === idTodo) {
@@ -223,15 +241,14 @@ export const editComment = (
     return todoItem;
   });
 
-  for (const todo of updatedListTodo) {
-    editTodoApi(todo);
-  }
+  handleUpdateData(updatedListTodo, project);
 };
 
 export const deleteComment = (
   idTodo: number,
   idComment: number,
-  listTodo: Todo[]
+  listTodo: Todo[],
+  project?: Project
 ) => {
   const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
     if (todoItem.id === idTodo) {
@@ -250,15 +267,14 @@ export const deleteComment = (
     }
     return todoItem;
   });
-  for (const todo of updatedListTodo) {
-    editTodoApi(todo);
-  }
+  handleUpdateData(updatedListTodo, project);
 };
 
 export const updateSubTodos = (
   idTodo: number,
   subTasks: Todo[],
-  listTodo: Todo[]
+  listTodo: Todo[],
+  project?: Project
 ) => {
   const updatedListTodo = listTodo.map(function iter(todoItem): Todo {
     if (todoItem.id === idTodo) {
@@ -276,8 +292,5 @@ export const updateSubTodos = (
     return todoItem;
   });
 
-  for (const todo of updatedListTodo) {
-    editTodoApi(todo);
-  }
+  handleUpdateData(updatedListTodo, project);
 };
-

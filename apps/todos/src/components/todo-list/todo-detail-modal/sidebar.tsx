@@ -26,9 +26,17 @@ const Sidebar = ({ todo, onEditPriority }: SidebarProps) => {
 
   return (
     <Stack
-      sx={{
+      sx={(theme) => ({
         position: 'relative',
-      }}
+        [theme.breakpoints.up('sm')]: {
+          alignItems: 'flex-start',
+          flexDirection: 'column',
+        },
+        [theme.breakpoints.down('sm')]: {
+          alignItems: 'center',
+          flexDirection: 'row',
+        },
+      })}
     >
       <Typography
         paddingX={1}
@@ -39,7 +47,7 @@ const Sidebar = ({ todo, onEditPriority }: SidebarProps) => {
       >
         Priority
       </Typography>
-      <Stack>
+      <Stack width='100%'>
         <Button
           aria-describedby={id}
           startIcon={

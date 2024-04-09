@@ -6,19 +6,24 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
 import { grey, red } from '@mui/material/colors';
-import { Todo } from '../types';
+import { Todo, View } from '../types';
 import TodoEditor from '../todo-editor/todo-editor';
 import { TodoAction } from '../todo-action';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { checkExpiredTime, formatDay } from '@/utils/day';
+import { useSelector, useDispatch } from 'react-redux';
+import { filterSelector } from '@/redux/selectors';
+import { setListTodoModal } from '@/redux/slices/todoDetailSlice';
 
 interface ItemTodoProps {
   indexTodo?: number;
   idEditTodo: number;
   todo: Todo;
   isOpenEditTodo: boolean;
+  listTodoCurrent?: Todo[];
+  allowViewBoard?: boolean;
   onToggleCompleteTodo: (todo: Todo) => void;
   onToggleEditTodo: (idTodo: number) => void;
   onEditTodo: (todo: Todo) => void;
@@ -36,6 +41,8 @@ const TodoItem: React.FC<ItemTodoProps> = ({
   idEditTodo,
   todo,
   isOpenEditTodo,
+  listTodoCurrent,
+  allowViewBoard = true,
   onToggleCompleteTodo,
   onToggleEditTodo,
   onEditTodo,
@@ -43,6 +50,8 @@ const TodoItem: React.FC<ItemTodoProps> = ({
   onDuplicate,
   onSeeDetailTodo,
 }) => {
+  const { view } = useSelector(filterSelector);
+  const dispatch = useDispatch();
   const [isOpenMenu, setIsOpenMenu] = useState(false);
 
   const {
@@ -56,16 +65,25 @@ const TodoItem: React.FC<ItemTodoProps> = ({
     id: todo.id,
   });
 
+  const checkViewBoard = view === View.BOARD && allowViewBoard;
+
   const style = {
-    opacity: isDragging ? 0.5 : undefined,
+    opacity: isDragging ? 0.25 : 1,
     transition,
     transform: CSS.Transform.toString(transform),
+    border: checkViewBoard ? '1px solid #ccc' : 'none',
+    borderRadius: checkViewBoard ? '8px' : '0',
+    padding: checkViewBoard ? '6px' : '0',
+  };
+
+  const handleSeeDetailTodo = () => {
+    listTodoCurrent && dispatch(setListTodoModal(listTodoCurrent));
+    onSeeDetailTodo && onSeeDetailTodo(todo, indexTodo);
   };
 
   if (idEditTodo === todo.id && isOpenEditTodo) {
     return (
       <TodoEditor
-        type='edit'
         todo={todo}
         onCancelEdit={onToggleEditTodo}
         onEditTodo={onEditTodo}
@@ -83,9 +101,6 @@ const TodoItem: React.FC<ItemTodoProps> = ({
       {...attributes}
       {...listeners}
       style={style}
-      sx={{
-        opacity: isDragging ? 0.25 : 1,
-      }}
     >
       <Stack
         direction='row'
@@ -149,9 +164,7 @@ const TodoItem: React.FC<ItemTodoProps> = ({
             }}
           >
             <Button
-              onClick={() =>
-                onSeeDetailTodo && onSeeDetailTodo(todo, indexTodo)
-              }
+              onClick={handleSeeDetailTodo}
               fullWidth
               sx={{
                 '&:hover': {
@@ -183,9 +196,7 @@ const TodoItem: React.FC<ItemTodoProps> = ({
                     }}
                   />
                 }
-                onClick={() =>
-                  onSeeDetailTodo && onSeeDetailTodo(todo, indexTodo)
-                }
+                onClick={handleSeeDetailTodo}
                 sx={{
                   '&:hover': {
                     backgroundColor: 'transparent',
@@ -219,30 +230,37 @@ const TodoItem: React.FC<ItemTodoProps> = ({
             display: isOpenMenu ? 'flex' : 'none',
           }}
         >
-          <Button
-            color='secondary'
-            sx={{
-              minWidth: 2.5,
-              padding: 0.75,
-            }}
-            onClick={() => {
-              onToggleEditTodo(todo.id);
-            }}
-          >
-            <EditOutlinedIcon fontSize='small' />
-          </Button>
-          <Button
-            color='secondary'
-            sx={{
-              minWidth: 2.5,
-              padding: 0.75,
-            }}
-            onClick={() =>
-              onSeeDetailTodo && onSeeDetailTodo(todo, indexTodo, true)
-            }
-          >
-            <ChatBubbleOutlineOutlinedIcon fontSize='small' />
-          </Button>
+          {!checkViewBoard && (
+            <>
+              <Button
+                color='secondary'
+                sx={{
+                  minWidth: 2.5,
+                  padding: 0.75,
+                }}
+                onClick={() => {
+                  onToggleEditTodo(todo.id);
+                }}
+              >
+                <EditOutlinedIcon fontSize='small' />
+              </Button>
+              <Button
+                color='secondary'
+                sx={{
+                  minWidth: 2.5,
+                  padding: 0.75,
+                }}
+                onClick={() => {
+                  listTodoCurrent &&
+                    dispatch(setListTodoModal(listTodoCurrent));
+                  onSeeDetailTodo && onSeeDetailTodo(todo, indexTodo, true);
+                }}
+              >
+                <ChatBubbleOutlineOutlinedIcon fontSize='small' />
+              </Button>
+            </>
+          )}
+
           <TodoAction
             todo={todo}
             isOpenMenu={isOpenMenu}
@@ -254,13 +272,15 @@ const TodoItem: React.FC<ItemTodoProps> = ({
           />
         </Stack>
       </Stack>
-      <Divider
-        sx={{
-          margin: 1,
-          backgroundColor: grey[100],
-          opacity: 0.3,
-        }}
-      />
+      {!checkViewBoard && (
+        <Divider
+          sx={{
+            margin: 1,
+            backgroundColor: grey[100],
+            opacity: 0.3,
+          }}
+        />
+      )}
     </Box>
   );
 };

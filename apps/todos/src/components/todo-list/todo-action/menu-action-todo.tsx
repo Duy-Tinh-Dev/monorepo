@@ -50,6 +50,16 @@ const MenuActionTodo: React.FC<MenuActionTodoProps> = ({
     onClose();
   };
 
+  const handleDuplicate = () => {
+    const newTodo = {
+      ...todo,
+      id: Date.now(),
+    };
+
+    onDuplicate(newTodo);
+    onClose();
+  };
+
   return (
     <Paper
       sx={{
@@ -117,12 +127,7 @@ const MenuActionTodo: React.FC<MenuActionTodoProps> = ({
           </Stack>
         </MenuItem>
         <Divider />
-        <MenuItem
-          onClick={() => {
-            onDuplicate(todo);
-            onClose();
-          }}
-        >
+        <MenuItem onClick={handleDuplicate}>
           <ListItemIcon>
             <AddToPhotosIcon />
           </ListItemIcon>

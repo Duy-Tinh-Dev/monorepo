@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Button, CircularProgress, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { DndContext, DragEndEvent, closestCorners } from '@dnd-kit/core';
-import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   SortableContext,
@@ -13,107 +12,73 @@ import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import { useTranslation } from '@op/i18n';
 import {
   addTodoApi,
+  addProjectApi,
   deleteTodoApi,
   duplicateTodoApi,
   editTodoApi,
-  getAllTodoUser,
   toggleCompleteTodoApi,
+  editProjectApi,
 } from 'src/api';
-import { useAuth } from '@/contexts/auth-context';
 import {
-  counterTodoSelector,
   filterSelector,
-  listTodoSortingSelector,
+  listTodoProjectSelector,
+  projectSelectedSelector,
   todoListSelector,
 } from '@/redux/selectors';
 import { initListTodo } from '@/redux/slices/todoSlice';
-import { useSensors, useDisclosure } from '@/hooks';
+import { useSensors } from '@/hooks';
 import { getIndexTodoById, checkPriority } from '@/utils';
 import { TodoEditor } from './todo-editor';
 import TodoItem from './todo-item/todo-item';
-import { GroupPriority } from '../group';
-import { TodoDetailModal } from './todo-detail-modal';
-import { ViewMenuOption } from '../view-menu-option';
-import { PriorityBy, PriorityLevels, Todo } from './types';
+import { GroupBy, PriorityBy, PriorityLevels, Todo, View } from './types';
 import backgroundEmpty from '@/assets/background.png';
+import { styleScrollbar } from '@/constants';
+import { TypeTime } from '@/@types/typeTime';
+import { toggleModalDetail } from '@/redux/slices/todoDetailSlice';
+import { updateProject } from '@/redux/slices/projectSlice';
 
-const levels: PriorityLevels[] = [
-  PriorityLevels.P1,
-  PriorityLevels.P2,
-  PriorityLevels.P3,
-];
+interface TodoListProps {
+  type?: TypeTime;
+  heading?: string;
+  totalTaskComplete?: number;
+  listTodoSorting: Todo[];
+  level?: PriorityLevels;
+  isHidden?: boolean;
+}
 
-const TodoList = () => {
+const TodoList: React.FC<TodoListProps> = ({
+  type = TypeTime.TODAY,
+  heading,
+  totalTaskComplete,
+  listTodoSorting,
+  level,
+  isHidden,
+}) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { t } = useTranslation(['common', 'option']);
-  const { currentUser } = useAuth();
   const { sensors } = useSensors();
+  const isOverdue = type === TypeTime.OVERDUE;
 
-  const listTodo = useSelector(todoListSelector);
-  const { groupBy, priority } = useSelector(filterSelector);
-  const totalTodoComplete = useSelector(counterTodoSelector);
-  const listTodoSorting = useSelector(listTodoSortingSelector);
+  const listTodo = useSelector(todoListSelector) ?? [];
+  const { priority, groupBy, view } = useSelector(filterSelector);
+  const projectSelected = useSelector(projectSelectedSelector);
+  const listTodoProject = useSelector(listTodoProjectSelector) ?? [];
 
-  const [loading, setLoading] = useState(true);
-  const [isCommentModal, setIsCommentModal] = useState(false);
-
-  const [todoDetail, setTodoDetail] = useState<Todo>();
-  const [indexTodoDetail, setIndexTodoDetail] = useState(0);
   const [isAddTodo, setIsAddTodo] = useState(false);
   const [idEditTodo, setIdEditTodo] = useState(-1);
   const [isOpenEditTodo, setIsOpenEditTodo] = useState(false);
 
-  const todoDetailModalDisclosure = useDisclosure({});
+  const disabledPopup =
+    priority !== PriorityBy.DEFAULT && groupBy !== GroupBy.DATE;
 
-  const levelPriority: PriorityLevels | undefined =
-    priority !== PriorityBy.DEFAULT ? PriorityLevels[priority] : undefined;
-
-  const setListTodo = (todos: Todo[]) => {
-    dispatch(initListTodo(todos));
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (currentUser) {
-      getAllTodoUser(currentUser.uid, setListTodo);
-    } else {
-      navigate('/auth/login');
-    }
-  }, [currentUser]);
+  const checkViewBoard = view === View.BOARD;
 
   const handleToggleModalDetail = (
     todo: Todo,
     index?: number,
     isComment?: boolean
   ) => {
-    setTodoDetail(todo);
-    todoDetailModalDisclosure.onOpen();
-    setIndexTodoDetail(index ?? 0);
-
-    if (isComment) {
-      setIsCommentModal(true);
-    } else {
-      setIsCommentModal(false);
-    }
-  };
-
-  const handleToggleCommentDetail = (isComment: boolean) => {
-    setIsCommentModal(isComment);
-  };
-
-  const handleNextDetailTodo = () => {
-    const nextIndex = indexTodoDetail + 1;
-
-    setTodoDetail(listTodoSorting[nextIndex]);
-    setIndexTodoDetail(nextIndex);
-  };
-
-  const handlePreviousDetailTodo = () => {
-    const preIndex = indexTodoDetail - 1;
-
-    setTodoDetail(listTodoSorting[preIndex]);
-    setIndexTodoDetail(preIndex);
+    dispatch(toggleModalDetail({ todo, index, isComment }));
   };
 
   const handleToggleAddTodo = () => {
@@ -132,24 +97,138 @@ const TodoList = () => {
 
     const originalPos = getIndexTodoById(listTodo, active.id);
     const newPos = getIndexTodoById(listTodo, over?.id);
-    if (checkPriority(listTodo, originalPos, newPos)) {
-      const newListTodo = arrayMove(listTodo, originalPos, newPos);
-      dispatch(initListTodo(newListTodo));
+
+    if (!checkPriority(listTodo, originalPos, newPos)) {
+      return;
+    }
+
+    const newListTodo = arrayMove(listTodo, originalPos, newPos);
+    dispatch(initListTodo(newListTodo));
+  };
+
+  const handleDragTodoProject = async ({ active, over }: DragEndEvent) => {
+    if (over === null || active.id === over?.id) return;
+
+    const originalPos = getIndexTodoById(listTodoProject, active.id);
+    const newPos = getIndexTodoById(listTodoProject, over?.id);
+    const newListTodo = arrayMove(listTodoProject, originalPos, newPos);
+
+    if (projectSelected) {
+      const newProject = {
+        ...projectSelected,
+        listTodo: newListTodo,
+      };
+
+      dispatch(updateProject(newProject));
+      await editProjectApi(newProject);
+    }
+  };
+
+  if (isHidden || (listTodoSorting.length === 0 && isOverdue)) {
+    return;
+  }
+
+  const handleToggleTodo = (todo: Todo) => {
+    if (projectSelected) {
+      const updateProject = {
+        ...projectSelected,
+        listTodo: listTodoProject.map((item) =>
+          item.id === todo.id
+            ? {
+                ...item,
+                isComplete: !item.isComplete,
+              }
+            : item
+        ),
+      };
+      editProjectApi(updateProject);
+    } else {
+      toggleCompleteTodoApi(todo);
+    }
+  };
+
+  const handleAddTodo = (newTodo: Todo) => {
+    if (projectSelected) {
+      const updateProject = {
+        ...projectSelected,
+        listTodo: [...listTodoProject, newTodo],
+      };
+
+      addProjectApi(updateProject);
+    } else {
+      addTodoApi(newTodo);
+    }
+  };
+
+  const handleEditTodo = (todo: Todo) => {
+    if (projectSelected) {
+      const updateProject = {
+        ...projectSelected,
+        listTodo: listTodoProject.map((item) =>
+          item.id === todo.id ? todo : item
+        ),
+      };
+      editProjectApi(updateProject);
+    } else {
+      editTodoApi(todo);
+    }
+  };
+
+  const handleDeleteTodo = (id: number) => {
+    if (projectSelected) {
+      const updateProject = {
+        ...projectSelected,
+        listTodo: listTodoProject.filter((item) => item.id !== id),
+      };
+      editProjectApi(updateProject);
+    } else {
+      deleteTodoApi(id);
+    }
+  };
+
+  const handleDuplicateTodo = (todo: Todo) => {
+    if (projectSelected) {
+      const updateProject = {
+        ...projectSelected,
+        listTodo: [...listTodoProject, todo],
+      };
+      addProjectApi(updateProject);
+    } else {
+      duplicateTodoApi(todo);
     }
   };
 
   return (
     <Stack
-      maxHeight={500}
       width='100%'
       position='relative'
-      paddingX='110px'
-      marginTop={6}
+      sx={{
+        flex: checkViewBoard ? '1 0 250px' : '1',
+      }}
+      paddingBottom='70px'
     >
-      <Typography variant='h4' component='h1' fontWeight='bold'>
-        {t('date.today')}
+      <Typography
+        variant='h4'
+        component='h1'
+        fontWeight='bold'
+        fontSize={checkViewBoard ? '18px' : '24px'}
+        marginBottom={checkViewBoard ? '10px' : '0'}
+      >
+        {heading}
+        {checkViewBoard && (
+          <Typography
+            component='span'
+            color='secondary'
+            sx={{
+              marginLeft: '6px',
+              fontWeight: '500',
+            }}
+          >
+            {listTodoSorting.length}
+          </Typography>
+        )}
       </Typography>
-      {!loading && listTodo.length > 0 && (
+      {!checkViewBoard && totalTaskComplete !== 0 && !isOverdue && (
         <Stack
           direction='row'
           alignItems='center'
@@ -159,96 +238,92 @@ const TodoList = () => {
         >
           <CheckCircleOutlinedIcon fontSize='small' color='secondary' />
           <Typography paragraph fontSize='14px'>
-            {totalTodoComplete} {t('task.title')}
+            {totalTaskComplete} {t('task.title')}
           </Typography>
         </Stack>
       )}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
-        onDragEnd={handleDragTodo}
+        onDragEnd={projectSelected ? handleDragTodoProject : handleDragTodo}
       >
         <SortableContext
           items={listTodoSorting}
           strategy={verticalListSortingStrategy}
         >
-          {groupBy === t('option:groupBy.priority') ? (
-            levels.map((level, index) => (
-              <GroupPriority
-                key={index}
-                listTodoSorting={listTodoSorting}
-                level={level}
+          <Box
+            sx={
+              checkViewBoard
+                ? {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px',
+                    overflowY: 'auto',
+                    maxHeight: 'calc(100vh - 200px)',
+                    ...styleScrollbar,
+                  }
+                : {}
+            }
+          >
+            {listTodoSorting.map((todo, index) => (
+              <TodoItem
+                key={todo.id}
+                indexTodo={index}
+                todo={todo}
+                idEditTodo={idEditTodo}
+                isOpenEditTodo={isOpenEditTodo}
+                listTodoCurrent={listTodoSorting}
+                onToggleCompleteTodo={handleToggleTodo}
+                onDeleteTodo={handleDeleteTodo}
+                onToggleEditTodo={handleToggleEditTodo}
+                onEditTodo={handleEditTodo}
+                onDuplicate={handleDuplicateTodo}
                 onSeeDetailTodo={handleToggleModalDetail}
               />
-            ))
-          ) : (
-            <>
-              {!loading &&
-                listTodoSorting.map((todo, index) => (
-                  <TodoItem
-                    key={todo.id}
-                    indexTodo={index}
-                    todo={todo}
-                    idEditTodo={idEditTodo}
-                    isOpenEditTodo={isOpenEditTodo}
-                    onToggleCompleteTodo={toggleCompleteTodoApi}
-                    onDeleteTodo={deleteTodoApi}
-                    onToggleEditTodo={handleToggleEditTodo}
-                    onEditTodo={editTodoApi}
-                    onDuplicate={duplicateTodoApi}
-                    onSeeDetailTodo={handleToggleModalDetail}
+            ))}
+            {!isOverdue && !isAddTodo && (
+              <Button
+                disableRipple
+                onClick={handleToggleAddTodo}
+                startIcon={
+                  <AddIcon
+                    fontSize='small'
+                    color='primary'
+                    sx={{ borderRadius: '50%' }}
                   />
-                ))}
-              {loading && (
-                <Stack alignItems='center' justifyContent='center' marginY={10}>
-                  <CircularProgress />
-                </Stack>
-              )}
-              {!isAddTodo && (
-                <Button
-                  disableRipple
-                  onClick={handleToggleAddTodo}
-                  startIcon={
-                    <AddIcon
-                      fontSize='small'
-                      color='primary'
-                      sx={{ borderRadius: '50%' }}
-                    />
-                  }
-                  color='secondary'
-                  sx={{
-                    marginTop: 2.5,
-                    justifyContent: 'flex-start',
-                    fontWeight: 'normal',
-                    '&.MuiButton-root:hover .MuiSvgIcon-root': {
-                      color: 'white',
-                      backgroundColor: 'primary.main',
-                    },
-                    '&:hover': {
-                      color: 'primary.main',
-                      backgroundColor: 'transparent',
-                      transition: 'none',
-                    },
-                  }}
-                >
-                  {t('actions.addTask')}
-                </Button>
-              )}
-              {isAddTodo && idEditTodo === -1 && (
-                <TodoEditor
-                  onAddTodo={addTodoApi}
-                  onCancelAdd={handleToggleAddTodo}
-                  level={levelPriority}
-                  disabledPopup={priority !== PriorityBy.DEFAULT}
-                />
-              )}
-            </>
-          )}
+                }
+                color='secondary'
+                sx={{
+                  marginTop: 2.5,
+                  justifyContent: 'flex-start',
+                  fontWeight: 'normal',
+                  '&.MuiButton-root:hover .MuiSvgIcon-root': {
+                    color: 'white',
+                    backgroundColor: 'primary.main',
+                  },
+                  '&:hover': {
+                    color: 'primary.main',
+                    backgroundColor: 'transparent',
+                    transition: 'none',
+                  },
+                }}
+              >
+                {t('actions.addTask')}
+              </Button>
+            )}
+            {!isOverdue && isAddTodo && idEditTodo === -1 && (
+              <TodoEditor
+                onAddTodo={handleAddTodo}
+                onCancelAdd={handleToggleAddTodo}
+                level={level}
+                disabledPopup={disabledPopup}
+                defaultTime={type}
+              />
+            )}
+          </Box>
         </SortableContext>
       </DndContext>
-      {currentUser &&
-        !loading &&
-        !isAddTodo &&
+      {!isAddTodo &&
         (listTodoSorting.length === 0 || listTodo.length === 0) && (
           <Stack maxWidth={300} alignItems='center' marginX='auto'>
             <img src={backgroundEmpty} alt='background'></img>
@@ -257,26 +332,6 @@ const TodoList = () => {
             </Typography>
           </Stack>
         )}
-      {!loading && todoDetailModalDisclosure.isOpen && todoDetail && (
-        <TodoDetailModal
-          isComment={isCommentModal}
-          isDisabledNextTodo={indexTodoDetail === listTodo.length - 1}
-          isDisabledPreviousTodo={indexTodoDetail === 0}
-          isOpen={todoDetailModalDisclosure.isOpen}
-          onClose={todoDetailModalDisclosure.onClose}
-          todo={todoDetail}
-          onToggleCommentDetail={handleToggleCommentDetail}
-          onNextTodoDetail={handleNextDetailTodo}
-          onPreviousTodoDetail={handlePreviousDetailTodo}
-        />
-      )}
-      <ViewMenuOption
-        sx={{
-          position: 'absolute',
-          right: '70px',
-          top: '0',
-        }}
-      />
     </Stack>
   );
 };

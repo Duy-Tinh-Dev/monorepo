@@ -20,13 +20,14 @@ import TodoDate from './todo-date';
 import { listPriority } from '@/constants';
 import { useAuth } from '@/contexts/auth-context';
 import { usePopover } from '@/hooks';
-import { getNameDate } from '@/utils';
+import { TypeTime } from '@/@types/typeTime';
+import { getColorTime, getLabelTime, getTimeAddDefault } from './utils';
 
 interface TodoEditorProps {
+  defaultTime?: TypeTime;
   todo?: Todo;
   level?: PriorityLevels;
   disabledPopup?: boolean;
-  type?: 'add' | 'edit';
   onCancelAdd?: () => void;
   onCancelEdit?: (id: number) => void;
   onAddTodo?: (newTodo: Todo) => void;
@@ -40,9 +41,9 @@ const getPriorityItemByLevel = (level: PriorityLevels | null): PriorityItem => {
 };
 
 const TodoEditor: React.FC<TodoEditorProps> = ({
+  defaultTime,
   todo,
   level = null,
-  type = 'add',
   disabledPopup,
   onCancelAdd,
   onAddTodo,
@@ -85,6 +86,8 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
   };
 
   const handleAddTodo = () => {
+    const time = expireTime ?? getTimeAddDefault(defaultTime);
+
     const newTodo = {
       id: new Date().getTime(),
       name: nameTodo.trim(),
@@ -94,7 +97,7 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
       comments: [],
       subTasks: [],
       userId: currentUser?.uid,
-      expireTime: expireTime ?? '',
+      expireTime: time,
     };
 
     onAddTodo && onAddTodo(newTodo);
@@ -137,6 +140,18 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
     setPriorityTodo(priorityTodoItem);
   };
 
+  const handleEnterKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') {
+      return;
+    }
+
+    if (todo) {
+      handleEditTodo();
+    } else {
+      handleAddTodo();
+    }
+  };
+
   return (
     <Box sx={sx} borderRadius={2.5} border={1} borderColor={grey[300]}>
       <Stack paddingX={1.25}>
@@ -152,15 +167,7 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
             inputRef={nameRef}
             value={nameTodo}
             onChange={handleChangeNameTodo}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                if (type === 'add') {
-                  handleAddTodo();
-                } else {
-                  handleEditTodo();
-                }
-              }
-            }}
+            onKeyDown={handleEnterKey}
           />
           <Input
             placeholder='Description'
@@ -180,18 +187,32 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
             variant='outlined'
             startIcon={<EditCalendarOutlinedIcon />}
             endIcon={
-              expireTime && (
-                <CloseOutlinedIcon
+              expireTime !== '' && (
+                <Button
                   sx={{
-                    color: grey[400],
+                    padding: 0,
+                    minWidth: 0,
                   }}
-                />
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpireTime('');
+                  }}
+                >
+                  <CloseOutlinedIcon
+                    sx={{
+                      color: grey[400],
+                    }}
+                    fontSize='small'
+                  />
+                </Button>
               )
             }
             sx={{
               fontWeight: 'normal',
               borderColor: grey[300],
-              color: expireTime ? green[500] : grey[500],
+              color: expireTime
+                ? green[500]
+                : getColorTime(defaultTime, expireTime),
               '& .MuiButton-startIcon': {
                 marginRight: 0.5,
               },
@@ -201,7 +222,7 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
             }}
             onClick={todoDatePopover.handleClick}
           >
-            {expireTime ? getNameDate(expireTime) : 'Due date'}
+            {getLabelTime(defaultTime, expireTime)}
           </Button>
           <Popover
             id={priorityPopover.id}
@@ -218,7 +239,7 @@ const TodoEditor: React.FC<TodoEditorProps> = ({
             }}
           >
             <TodoDate
-              expireTime={expireTime}
+              expireTime={todo?.expireTime}
               setExpireTime={setExpireTime}
               onClose={todoDatePopover.handleClose}
             />

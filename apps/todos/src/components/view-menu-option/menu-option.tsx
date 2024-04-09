@@ -17,14 +17,16 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useTranslation } from '@op/i18n';
 import { SubMenu } from './sub-menu-option';
 import Sort from '@/components/view-menu-option/sort';
-import Filter from '@/components/view-menu-option/filter';
-import { useDispatch } from 'react-redux';
-import { resetFilter } from '@/redux/slices/filterSlice';
+import FilterPriority from '@/components/view-menu-option/filter-priority';
+import { useDispatch, useSelector } from 'react-redux';
+import { resetFilter, setView } from '@/redux/slices/filterSlice';
+import { OptionFilter, View } from '@/components/todo-list/types';
+import { filterSelector } from '@/redux/selectors';
 
 export interface MenuOptionItem {
-  icon: ReactElement<SvgIconProps>;
+  icon: ReactElement<SvgIconProps> | null;
   label: string;
-  type: 'group' | 'sort' | 'priority';
+  type: OptionFilter;
   selected: string;
   subMenu: SubMenu[];
 }
@@ -32,12 +34,30 @@ export interface MenuOptionItem {
 const MenuOption = () => {
   const { t } = useTranslation(['common', 'option']);
   const dispatch = useDispatch();
+  const { view } = useSelector(filterSelector);
 
   const [isReset, setIsReset] = useState(false);
 
   const handleReset = () => {
     setIsReset(true);
     dispatch(resetFilter());
+  };
+
+  const menuView = [
+    {
+      title: t('views.list'),
+      icon: <ViewStreamOutlinedIcon fontSize='small' color='secondary' />,
+      type: View.LIST,
+    },
+    {
+      title: t('views.board'),
+      icon: <ViewWeekOutlinedIcon fontSize='small' color='secondary' />,
+      type: View.BOARD,
+    },
+  ];
+
+  const handleSelectedViewOption = (option: View) => {
+    dispatch(setView(option));
   };
 
   return (
@@ -74,40 +94,32 @@ const MenuOption = () => {
             backgroundColor: '#f5f5f5',
           }}
         >
-          <Button
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              width: '50%',
-              color: '#202020',
-              backgroundColor: 'secondary.100',
-              borderRadius: '8px',
-              boxShadow: 'none',
-              '&:hover': {
-                backgroundColor: 'secondary.100',
-                boxShadow: 'none',
-              },
-            }}
-          >
-            <ViewStreamOutlinedIcon fontSize='small' color='secondary' />
-            <Typography variant='body2' fontWeight={400}>
-              {t('views.list')}
-            </Typography>
-          </Button>
-          <Button
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              width: '50%',
-              borderRadius: '8px',
-            }}
-            color='secondary'
-          >
-            <ViewWeekOutlinedIcon fontSize='small' color='secondary' />
-            <Typography variant='body2' fontWeight={400}>
-              {t('views.board')}
-            </Typography>
-          </Button>
+          {menuView.map((item) => (
+            <Button
+              key={item.title}
+              color='secondary'
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                width: '50%',
+                borderRadius: '8px',
+                transition: 'all 0.3s ease',
+                ...(item.type === view && {
+                  color: '#202020',
+                  backgroundColor: 'secondary.100',
+                  '&:hover': {
+                    backgroundColor: 'secondary.100',
+                  },
+                }),
+              }}
+              onClick={() => handleSelectedViewOption(item.type)}
+            >
+              {item.icon}
+              <Typography variant='body2' fontWeight={400}>
+                {item.title}
+              </Typography>
+            </Button>
+          ))}
         </Stack>
         <Divider />
         <MenuItem
@@ -146,7 +158,7 @@ const MenuOption = () => {
             <HelpOutlineIcon fontSize='small' />
           </ListItemIcon>
         </MenuItem>
-        <Filter isReset={isReset} setIsReset={setIsReset} />
+        <FilterPriority isReset={isReset} setIsReset={setIsReset} />
         <Divider />
         <MenuItem onClick={handleReset}>
           <ListItemText>

@@ -87,6 +87,7 @@ const SubTasks: React.FC<SubTaskProps> = ({
                 idEditTodo={idEditTodo}
                 todo={subTask}
                 isOpenEditTodo={isOpenEditTodo}
+                allowViewBoard={false}
                 onToggleCompleteTodo={onToggleCompleteSubTodo}
                 onToggleEditTodo={handleToggleEditTodo}
                 onEditTodo={onEditSubTodo}

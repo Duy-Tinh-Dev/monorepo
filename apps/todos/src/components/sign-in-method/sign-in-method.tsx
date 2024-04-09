@@ -34,11 +34,20 @@ const SignInMethod = () => {
 
   const styleButton = {
     padding: '0 16px',
-    minWidth: '400px',
-    height: '48px',
-    fontSize: '18px',
     color: '#000',
     fontWeight: 'bold',
+    height: {
+      xs: 40,
+      sm: 56,
+    },
+    minWidth: {
+      xs: '100%',
+      sm: 400,
+    },
+    fontSize: {
+      xs: '14px',
+      sm: '18px',
+    },
   };
 
   return (

@@ -37,18 +37,16 @@ const CommentEditor = ({
         name: 'default',
         content: content.trim(),
       });
-    setName('');
-    setContent('');
-    onClose();
+
+    handleCloseEditor();
   };
 
   const handleEditComment = () => {
     if (comment) {
       onEditComment &&
         onEditComment({ id: comment.id, name, content: content.trim() });
-      setName('');
-      setContent('');
-      onClose();
+
+      handleCloseEditor();
     }
   };
 
