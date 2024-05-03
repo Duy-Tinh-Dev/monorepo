@@ -26,6 +26,11 @@ import { auth } from '@/config/firebase';
 import { ROUTES } from '@/constants';
 import { useMediaQuery, useTheme } from '@mui/material';
 
+const DEFAULT_USER = {
+  EMAIL: 'test@gmail.com',
+  PASSWORD: '123456789',
+};
+
 const SignIn = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -114,7 +119,7 @@ const SignIn = () => {
           <Controller
             name='email'
             control={control}
-            defaultValue=''
+            defaultValue={DEFAULT_USER.EMAIL}
             render={({ field }) => (
               <TextField
                 {...field}
@@ -132,7 +137,7 @@ const SignIn = () => {
           <Controller
             name='password'
             control={control}
-            defaultValue=''
+            defaultValue={DEFAULT_USER.PASSWORD}
             render={({ field }) => (
               <TextField
                 {...field}
