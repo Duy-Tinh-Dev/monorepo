@@ -3,7 +3,6 @@ import { Dialog, Divider, Stack } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import TodoContent from './todo-content';
 import Header from './header';
-import TodoStatus from './todo-status';
 import { Comment, Todo } from '../types';
 import { TodoComment } from '../todo-comment';
 import NavigationTodo from './navigation-todo';
