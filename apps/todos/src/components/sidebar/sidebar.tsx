@@ -64,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       title: t('sidebar:today'),
       href: ROUTES.home,
       icon: <TodayIcon />,
-    }
+    },
   ];
 
   return (
@@ -73,6 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         open={openSidebar}
         onClose={onCloseSidebar}
         transitionDuration={300}
+        disableEnforceFocus
         sx={(theme) => ({
           [theme.breakpoints.up('md')]: { zIndex: '-1' },
           [theme.breakpoints.down('md')]: { zIndex: '1' },
